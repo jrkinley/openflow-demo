@@ -1,4 +1,4 @@
-name                   = "kafka-demo"
+name                   = "openflow-msk-demo"
 region                 = "eu-west-2"
 create_vpc             = false
 kafka_version          = "3.5.1"

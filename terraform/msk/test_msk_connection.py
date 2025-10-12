@@ -195,6 +195,30 @@ def consume_message(expected_test_id):
         print(f"❌ Message consumption failed: {e}")
         return False
 
+def cleanup_test_topic():
+    """Clean up the test topic after testing."""
+    print(f"🧹 Cleaning up test topic: {TOPIC_NAME}")
+    
+    try:
+        admin_client = AdminClient(get_kafka_config())
+        
+        # Delete the topic
+        futures = admin_client.delete_topics([TOPIC_NAME], operation_timeout=30)
+        
+        # Wait for topic deletion
+        for topic, future in futures.items():
+            try:
+                future.result(timeout=10)
+                print(f"✅ Topic '{topic}' deleted successfully")
+                return True
+            except Exception as e:
+                print(f"❌ Failed to delete topic '{topic}': {e}")
+                return False
+                
+    except Exception as e:
+        print(f"❌ Topic cleanup failed: {e}")
+        return False
+
 def main():
     """Main test function."""
     print("🚀 Starting MSK Connection Test")
@@ -219,30 +243,40 @@ def main():
     print(f"   Consumer Group: {CONSUMER_GROUP}")
     print()
     
-    # Test connection
-    if not test_connection():
-        sys.exit(1)
+    topic_created = False
     
-    # Create topic
-    if not create_topic_if_not_exists():
-        sys.exit(1)
-    
-    # Produce message
-    test_id = produce_message()
-    if test_id is None:
-        sys.exit(1)
-    
-    # Wait a moment for message to be available
-    print("⏳ Waiting for message to be available...")
-    time.sleep(2)
-    
-    # Consume message
-    if not consume_message(test_id):
-        sys.exit(1)
-    
-    print()
-    print("🎉 MSK connection test completed successfully!")
-    print("✅ Connection, production, and consumption all working!")
+    try:
+        # Test connection
+        if not test_connection():
+            sys.exit(1)
+        
+        # Create topic
+        if not create_topic_if_not_exists():
+            sys.exit(1)
+        topic_created = True
+        
+        # Produce message
+        test_id = produce_message()
+        if test_id is None:
+            sys.exit(1)
+        
+        # Wait a moment for message to be available
+        print("⏳ Waiting for message to be available...")
+        time.sleep(2)
+        
+        # Consume message
+        if not consume_message(test_id):
+            sys.exit(1)
+        
+        print()
+        print("🎉 MSK connection test completed successfully!")
+        print("✅ Connection, production, and consumption all working!")
+        
+    finally:
+        # Clean up the test topic if it was created
+        if topic_created:
+            print()
+            cleanup_test_topic()
 
 if __name__ == '__main__':
     main()

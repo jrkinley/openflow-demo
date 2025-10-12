@@ -50,7 +50,7 @@ module "vpc" {
 # Local values to handle VPC and subnet references
 locals {
   vpc_id     = var.create_vpc ? module.vpc[0].vpc_id : data.aws_vpc.existing[0].id
-  subnet_ids = var.create_vpc ? module.vpc[0].private_subnets : var.existing_subnet_ids
+  subnet_ids = var.create_vpc ? module.vpc[0].public_subnets : var.existing_subnet_ids
 
   # Common tags for all resources
   common_tags = {
@@ -61,6 +61,7 @@ locals {
 # Security group for MSK cluster
 resource "aws_security_group" "msk" {
   name_prefix = "${var.name}_msk_"
+  description = "Security group for MSK cluster ${var.name}"
   vpc_id      = local.vpc_id
 
   # Kafka broker communication (9092 for PLAINTEXT, 9094 for TLS, 9096 for SASL_SCRAM)
@@ -78,6 +79,7 @@ resource "aws_security_group" "msk" {
     self      = true
   }
 
+  # SASL/SCRAM port (internal cluster communication)
   ingress {
     from_port = 9096
     to_port   = 9096
@@ -85,13 +87,21 @@ resource "aws_security_group" "msk" {
     self      = true
   }
 
-  # Allow public access to SASL_SCRAM port for demo purposes
+  # SASL/SCRAM port (public access)
   ingress {
     from_port   = 9096
     to_port     = 9096
     protocol    = "tcp"
     cidr_blocks = ["0.0.0.0/0"]
     description = "Public access to SASL_SCRAM port"
+  }
+
+  ingress {
+    from_port   = 9196
+    to_port     = 9196
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+    description = "Public access to SASL_SCRAM port (public)"
   }
 
   # Zookeeper communication
@@ -131,6 +141,7 @@ resource "aws_security_group" "msk" {
 resource "aws_security_group" "msk_client" {
   count       = var.create_vpc ? 1 : 0
   name_prefix = "${var.name}_msk_client_"
+  description = "Security group for MSK clients connecting to ${var.name}"
   vpc_id      = local.vpc_id
 
   # Allow outbound to MSK brokers
@@ -224,6 +235,7 @@ min.insync.replicas = 2
 num.partitions = 3
 log.retention.hours = 168
 allow.everyone.if.no.acl.found = false
+super.users = User:kafka-user
 PROPERTIES
 }
 
@@ -241,11 +253,6 @@ resource "aws_msk_cluster" "msk" {
     instance_type   = var.broker_instance_type
     client_subnets  = local.subnet_ids
     security_groups = [aws_security_group.msk.id]
-    connectivity_info {
-      public_access {
-        type = "SERVICE_PROVIDED_EIPS"
-      }
-    }
 
     storage_info {
       ebs_storage_info {
@@ -294,10 +301,29 @@ resource "aws_msk_cluster" "msk" {
   })
 }
 
+# KMS Key for Secrets Manager (required for MSK)
+resource "aws_kms_key" "msk_secrets" {
+  count                   = var.enable_sasl_scram ? 1 : 0
+  description             = "KMS key for MSK Secrets Manager secret ${var.name}"
+  deletion_window_in_days = 7
+
+  tags = merge(local.common_tags, {
+    Name = "${var.name}_msk_secrets_key"
+  })
+}
+
+resource "aws_kms_alias" "msk_secrets" {
+  count         = var.enable_sasl_scram ? 1 : 0
+  name          = "alias/${var.name}-msk-secrets"
+  target_key_id = aws_kms_key.msk_secrets[0].key_id
+}
+
 # Simple SASL/SCRAM Authentication (AWS requires Secrets Manager)
 resource "aws_secretsmanager_secret" "msk_scram_secret" {
-  count = var.enable_sasl_scram ? 1 : 0
-  name  = "${var.name}-msk-scram-secret"
+  count       = var.enable_sasl_scram ? 1 : 0
+  name        = "AmazonMSK_${var.name}"
+  description = "SASL/SCRAM credentials for MSK cluster ${var.name}"
+  kms_key_id  = aws_kms_key.msk_secrets[0].arn
 
   tags = merge(local.common_tags, {
     Name = "${var.name}_msk_scram_secret"
