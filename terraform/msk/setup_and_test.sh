@@ -1,5 +1,7 @@
 #!/bin/bash
 # MSK Connection Test Setup Script
+# Sets up environment and runs connection test for MSK cluster with SASL/SCRAM authentication
+# Note: No ACL setup needed since the user is configured as a superuser
 
 set -e
 
@@ -76,10 +78,6 @@ echo "✅ Configuration ready:"
 echo "   Bootstrap Servers: $MSK_BOOTSTRAP_SERVERS"
 echo "   Username: $KAFKA_USERNAME"
 echo "   Password: [HIDDEN]"
-
-echo ""
-echo "🔧 Setting up Kafka ACLs (if needed)..."
-uv run python setup_kafka_acls.py
 
 echo ""
 echo "🧪 Running MSK connection test..."

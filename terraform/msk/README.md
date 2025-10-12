@@ -56,6 +56,7 @@ sasl.jaas.config=org.apache.kafka.common.security.scram.ScramLoginModule require
 - ✅ **CloudWatch Logging** - Broker logs automatically sent
 - ✅ **Auto-tagging** - Resources tagged with your username
 - ✅ **VPC Flexibility** - Create new VPC or use existing
+- ✅ **Superuser Configuration** - Client user has full admin privileges (perfect for demos)
 
 ## Enabling Public Access
 
@@ -86,6 +87,7 @@ terraform output msk_bootstrap_brokers_sasl_scram
 
 ### Step 4: Test Connection
 ```bash
+# Automated setup and test (installs dependencies, configures environment, runs test)
 ./setup_and_test.sh
 ```
 
