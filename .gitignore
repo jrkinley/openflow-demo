@@ -1,0 +1,76 @@
+# =============================================================================
+# Terraform
+# =============================================================================
+
+# Local .terraform directories
+**/.terraform/*
+
+# State files
+*.tfstate
+*.tfstate.*
+
+# Plan files
+*.tfplan
+
+# Dependency lock files
+.terraform.lock.hcl
+
+# Crash log files
+crash.log
+
+# Override files (usually used to override resources locally)
+override.tf
+override.tf.json
+*_override.tf
+*_override.tf.json
+
+# Include override files you do wish to add to version control using negated pattern
+# !example_override.tf
+
+# Ignore any .tfvars files that are generated automatically for each Terraform run
+# Most .tfvars files are managed as part of configuration and should be included
+# example.tfvars
+
+# =============================================================================
+# Python
+# =============================================================================
+
+# Virtual environments
+.venv/
+
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# =============================================================================
+# IDE & Editor Files
+# =============================================================================
+
+# Visual Studio Code
+.vscode/
+
+# IntelliJ IDEA
+.idea/
+
+# Vim
+*.swp
+*.swo
+
+# =============================================================================
+# Operating System Files
+# =============================================================================
+
+# macOS
+.DS_Store
+
+# Windows
+Thumbs.db
+
+# =============================================================================
+# Environment & Configuration
+# =============================================================================
+
+# Environment files
+*.env
