@@ -1,3 +1,8 @@
+output "region" {
+  description = "AWS region where the MSK cluster is deployed"
+  value       = var.region
+}
+
 output "msk_cluster_arn" {
   description = "ARN of the MSK cluster"
   value       = aws_msk_cluster.msk.arn
@@ -42,4 +47,22 @@ output "msk_scram_secret_arn" {
 output "msk_secrets_kms_key_arn" {
   description = "ARN of the KMS key used to encrypt the MSK secrets"
   value       = var.enable_sasl_scram ? aws_kms_key.msk_secrets[0].arn : null
+}
+
+# IAM Admin User Outputs
+output "msk_admin_user_name" {
+  description = "IAM user name for MSK ACL management"
+  value       = aws_iam_user.msk_admin.name
+}
+
+output "msk_admin_access_key_id" {
+  description = "Access key ID for MSK admin user"
+  value       = aws_iam_access_key.msk_admin.id
+  sensitive   = true
+}
+
+output "msk_admin_secret_access_key" {
+  description = "Secret access key for MSK admin user"
+  value       = aws_iam_access_key.msk_admin.secret
+  sensitive   = true
 }

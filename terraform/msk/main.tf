@@ -104,6 +104,15 @@ resource "aws_security_group" "msk" {
     description = "Public access to SASL_SCRAM port (public)"
   }
 
+  # SASL/IAM port (public access)
+  ingress {
+    from_port   = 9198
+    to_port     = 9198
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+    description = "Public access to SASL_IAM port"
+  }
+
   # Zookeeper communication
   ingress {
     from_port = 2181
@@ -235,7 +244,6 @@ min.insync.replicas = 2
 num.partitions = 3
 log.retention.hours = 168
 allow.everyone.if.no.acl.found = false
-super.users = User:kafka-user
 PROPERTIES
 }
 
@@ -293,6 +301,7 @@ resource "aws_msk_cluster" "msk" {
   client_authentication {
     sasl {
       scram = var.enable_sasl_scram
+      iam   = true
     }
   }
 
@@ -343,4 +352,56 @@ resource "aws_msk_scram_secret_association" "msk_scram_association" {
   count           = var.enable_sasl_scram ? 1 : 0
   cluster_arn     = aws_msk_cluster.msk.arn
   secret_arn_list = [aws_secretsmanager_secret.msk_scram_secret[0].arn]
+}
+
+# IAM Policy for MSK ACL Management
+resource "aws_iam_policy" "msk_acl_admin" {
+  name        = "${var.name}-msk-acl-admin"
+  description = "Policy for MSK ACL management"
+  
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Effect = "Allow"
+        Action = [
+          "kafka-cluster:*"
+        ]
+        Resource = [
+          aws_msk_cluster.msk.arn,
+          "${aws_msk_cluster.msk.arn}/*"
+        ]
+      },
+      {
+        Effect = "Allow"
+        Action = [
+          "sts:GetCallerIdentity"
+        ]
+        Resource = "*"
+      }
+    ]
+  })
+
+  tags = local.common_tags
+}
+
+# IAM User for MSK ACL Management
+resource "aws_iam_user" "msk_admin" {
+  name = "${var.name}-msk-admin"
+  path = "/"
+
+  tags = merge(local.common_tags, {
+    Name = "${var.name}-msk-admin"
+  })
+}
+
+# Attach policy to user
+resource "aws_iam_user_policy_attachment" "msk_admin_policy" {
+  user       = aws_iam_user.msk_admin.name
+  policy_arn = aws_iam_policy.msk_acl_admin.arn
+}
+
+# Create access key for the admin user
+resource "aws_iam_access_key" "msk_admin" {
+  user = aws_iam_user.msk_admin.name
 }

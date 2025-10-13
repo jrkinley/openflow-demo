@@ -19,10 +19,15 @@ kafka_username    = "kafka-user"
 # kafka_password should be set via environment variable or prompt
 
 # Existing VPC Configuration (required when create_vpc = false)
-# Replace these with your actual VPC and subnet IDs
+# IMPORTANT: For public access, these MUST be public subnets with Internet Gateway routes
+# Replace these with your actual VPC and PUBLIC subnet IDs
 existing_vpc_id = "vpc-0eb152610f491cfb3"
 existing_subnet_ids = [
-  "subnet-0b7f3513ecc69a242",
-  "subnet-097c4f9ae3e0c4052",
-  "subnet-02e0b74dfe9d9a4a6"
+  "subnet-0b7f3513ecc69a242",  # Must be public subnet in AZ 1
+  "subnet-097c4f9ae3e0c4052",  # Must be public subnet in AZ 2  
+  "subnet-02e0b74dfe9d9a4a6"   # Must be public subnet in AZ 3
 ]
+
+# To find your public subnets, use:
+# aws ec2 describe-subnets --filters "Name=vpc-id,Values=YOUR_VPC_ID" \
+#   --query 'Subnets[?MapPublicIpOnLaunch==`true`].{SubnetId:SubnetId,AZ:AvailabilityZone,CIDR:CidrBlock}'
