@@ -1,27 +1,42 @@
 #!/usr/bin/env python3
 """
-Process historical stock quote CSV files and produce to Kafka in Avro format.
+Process historical stock quote CSV files and produce to Kafka in JSON format.
 """
 
 import argparse
 import csv
-import io
 import json
 import os
 import sys
 import threading
+import time
 from pathlib import Path
 from typing import List, Dict, Any, Optional
 
-import fastavro
 from confluent_kafka import Producer
+from confluent_kafka.admin import AdminClient, NewTopic, KafkaException
 from dotenv import load_dotenv
 
 
-def load_avro_schema(schema_path: Path) -> Dict[str, Any]:
-    """Load and parse the Avro schema file."""
-    with open(schema_path, 'r') as f:
-        return json.load(f)
+def get_kafka_config() -> Optional[Dict[str, Any]]:
+    """
+    Get base Kafka configuration from environment variables.
+    Returns None if KAFKA_BOOTSTRAP_SERVERS is not set.
+    """
+    bootstrap_servers = os.getenv('KAFKA_BOOTSTRAP_SERVERS')
+    
+    if not bootstrap_servers:
+        return None
+    
+    config = {
+        'bootstrap.servers': bootstrap_servers,
+        'security.protocol': os.getenv('KAFKA_SECURITY_PROTOCOL', 'SASL_SSL'),
+        'sasl.mechanisms': os.getenv('KAFKA_SASL_MECHANISM', 'SCRAM-SHA-512'),
+        'sasl.username': os.getenv('KAFKA_SASL_USERNAME'),
+        'sasl.password': os.getenv('KAFKA_SASL_PASSWORD'),
+    }
+    
+    return config
 
 
 def create_kafka_producer() -> Optional[Producer]:
@@ -29,43 +44,117 @@ def create_kafka_producer() -> Optional[Producer]:
     Create a Kafka producer from environment variables.
     Returns None if KAFKA_BOOTSTRAP_SERVERS is not set (for testing without Kafka).
     """
-    bootstrap_servers = os.getenv('KAFKA_BOOTSTRAP_SERVERS')
+    config = get_kafka_config()
     
-    if not bootstrap_servers:
+    if not config:
         print("KAFKA_BOOTSTRAP_SERVERS not set. Running in print-only mode.")
         return None
     
-    config = {
-        'bootstrap.servers': bootstrap_servers,
-        'client.id': 'historical-quotes-producer',
-    }
+    # Add producer-specific configuration
+    config['client.id'] = 'historical-quotes-producer'
     
-    # Add SASL/SSL configuration
-    security_protocol = os.getenv('KAFKA_SECURITY_PROTOCOL')
-    if security_protocol:
-        config['security.protocol'] = security_protocol
-    
-    sasl_mechanism = os.getenv('KAFKA_SASL_MECHANISM')
-    if sasl_mechanism:
-        config['sasl.mechanism'] = sasl_mechanism
-    
-    sasl_username = os.getenv('KAFKA_SASL_USERNAME')
-    if sasl_username:
-        config['sasl.username'] = sasl_username
-    
-    sasl_password = os.getenv('KAFKA_SASL_PASSWORD')
-    if sasl_password:
-        config['sasl.password'] = sasl_password
-    
-    print(f"Creating Kafka producer with bootstrap servers: {bootstrap_servers}")
+    print(f"Creating Kafka producer with bootstrap servers: {config['bootstrap.servers']}")
     return Producer(config)
 
 
-def serialize_avro_record(record: Dict[str, Any], schema: Dict[str, Any]) -> bytes:
-    """Serialize a record using Avro schema to bytes."""
-    output = io.BytesIO()
-    fastavro.schemaless_writer(output, schema, record)
-    return output.getvalue()
+def create_kafka_admin_client() -> Optional[AdminClient]:
+    """
+    Create a Kafka admin client from environment variables.
+    Returns None if KAFKA_BOOTSTRAP_SERVERS is not set.
+    """
+    config = get_kafka_config()
+    
+    if not config:
+        print("ERROR: KAFKA_BOOTSTRAP_SERVERS not set in environment", file=sys.stderr)
+        return None
+    
+    print(f"Creating Kafka admin client with bootstrap servers: {config['bootstrap.servers']}")
+    return AdminClient(config)
+
+
+def recreate_topic(topic_name: str):
+    """
+    Delete and recreate a Kafka topic using cluster defaults.
+    Waits 10 seconds between deletion and creation.
+    """
+    try:
+        admin_client = create_kafka_admin_client()
+        
+        print(f"\n{'='*60}")
+        print(f"Recreating topic: {topic_name}")
+        print(f"{'='*60}\n")
+        
+        # Delete the topic if it exists
+        try:
+            print(f"Deleting topic '{topic_name}'...")
+            fs = admin_client.delete_topics([topic_name], operation_timeout=30)
+            
+            # Wait for operation to complete
+            for topic, f in fs.items():
+                try:
+                    f.result()  # The result itself is None
+                    print(f"Topic '{topic}' deleted successfully")
+                except KafkaException as e:
+                    if e.args[0].code() == KafkaException._UNKNOWN_TOPIC_OR_PART:
+                        print(f"Topic '{topic}' does not exist (will create new)")
+                    else:
+                        error_msg = str(e)
+                        print(f"Failed to delete topic '{topic}': {error_msg}", file=sys.stderr)
+                        if "TOPIC_AUTHORIZATION_FAILED" in error_msg or "authorization" in error_msg.lower():
+                            print("HINT: Your credentials may not have admin permissions for topic management", file=sys.stderr)
+                        return False
+        except Exception as e:
+            print(f"Error during topic deletion: {e}", file=sys.stderr)
+            print("HINT: Ensure your user has permissions for Kafka admin operations", file=sys.stderr)
+            return False
+        
+        # Wait for Kafka to cleanup resources
+        print(f"\nWaiting 10 seconds for Kafka to cleanup resources...")
+        for i in range(10, 0, -1):
+            print(f"{i}...", end=" ", flush=True)
+            time.sleep(1)
+        print("\n")
+        
+        # Create the topic using cluster defaults
+        try:
+            print(f"Creating topic '{topic_name}' with cluster defaults...")
+            new_topic = NewTopic(
+                topic=topic_name,
+                num_partitions=-1,  # Use broker default
+                replication_factor=-1  # Use broker default
+            )
+            
+            fs = admin_client.create_topics([new_topic], operation_timeout=30)
+            
+            # Wait for operation to complete
+            for topic, f in fs.items():
+                try:
+                    f.result()  # The result itself is None
+                    print(f"Topic '{topic}' created successfully")
+                except KafkaException as e:
+                    error_msg = str(e)
+                    print(f"Failed to create topic '{topic}': {error_msg}", file=sys.stderr)
+                    if "TOPIC_AUTHORIZATION_FAILED" in error_msg or "authorization" in error_msg.lower():
+                        print("HINT: Your credentials may not have admin permissions for topic management", file=sys.stderr)
+                    return False
+        except Exception as e:
+            print(f"Error during topic creation: {e}", file=sys.stderr)
+            return False
+        
+        print(f"\n{'='*60}")
+        print(f"Topic '{topic_name}' is ready")
+        print(f"{'='*60}\n")
+        
+        return True
+        
+    except Exception as e:
+        print(f"Unexpected error during topic recreation: {e}", file=sys.stderr)
+        return False
+
+
+def serialize_json_record(record: Dict[str, Any]) -> bytes:
+    """Serialize a record to JSON bytes."""
+    return json.dumps(record).encode('utf-8')
 
 
 def delivery_callback(err, msg):
@@ -89,9 +178,9 @@ def extract_symbol_from_filename(filename: str) -> str:
     return name
 
 
-def csv_row_to_avro(row: Dict[str, str], symbol: str) -> Dict[str, Any]:
+def csv_row_to_record(row: Dict[str, str], symbol: str) -> Dict[str, Any]:
     """
-    Convert a CSV row to an Avro record.
+    Convert a CSV row to a record dictionary.
     
     CSV columns: Date, Close/Last, Volume, Open, High, Low
     """
@@ -108,14 +197,13 @@ def csv_row_to_avro(row: Dict[str, str], symbol: str) -> Dict[str, Any]:
 
 def process_csv_file(
     csv_path: Path,
-    schema: Dict[str, Any],
     thread_id: int,
     producer: Optional[Producer],
     kafka_topic: Optional[str]
 ):
     """
     Process a single CSV file in a thread.
-    Read each row, convert to Avro format, and produce to Kafka (or print if no producer).
+    Read each row, convert to JSON format, and produce to Kafka (or print if no producer).
     """
     symbol = extract_symbol_from_filename(csv_path.name)
     
@@ -127,15 +215,12 @@ def process_csv_file(
             record_count = 0
             
             for row in reader:
-                # Convert CSV row to Avro record
-                avro_record = csv_row_to_avro(row, symbol)
-                
-                # Validate against schema (fastavro will raise if invalid)
-                fastavro.validate(avro_record, schema)
+                # Convert CSV row to record
+                record = csv_row_to_record(row, symbol)
                 
                 if producer and kafka_topic:
                     # Serialize and produce to Kafka
-                    avro_bytes = serialize_avro_record(avro_record, schema)
+                    json_bytes = serialize_json_record(record)
                     
                     # Use the stock symbol as the key for partitioning
                     key = symbol.encode('utf-8')
@@ -144,7 +229,7 @@ def process_csv_file(
                     producer.produce(
                         topic=kafka_topic,
                         key=key,
-                        value=avro_bytes,
+                        value=json_bytes,
                         callback=delivery_callback
                     )
                     
@@ -152,7 +237,7 @@ def process_csv_file(
                     producer.poll(0)
                 else:
                     # Print mode (no Kafka connection)
-                    print(f"[Thread {thread_id}] {avro_record}")
+                    print(f"[Thread {thread_id}] {record}")
                 
                 record_count += 1
         
@@ -186,22 +271,9 @@ def find_csv_files(path: Path) -> List[Path]:
         raise ValueError(f"Path {path} does not exist")
 
 
-def find_avro_schema(directory: Path) -> Path:
-    """Find the Avro schema file (.avsc) in the given directory."""
-    avsc_files = list(directory.glob('*.avsc'))
-    
-    if not avsc_files:
-        raise ValueError(f"No Avro schema file (.avsc) found in {directory}")
-    
-    if len(avsc_files) > 1:
-        print(f"Warning: Multiple .avsc files found, using {avsc_files[0].name}", file=sys.stderr)
-    
-    return avsc_files[0]
-
-
 def main():
     parser = argparse.ArgumentParser(
-        description='Process historical stock quote CSV files and produce to Kafka in Avro format'
+        description='Process historical stock quote CSV files and produce to Kafka in JSON format'
     )
     parser.add_argument(
         'path',
@@ -213,6 +285,11 @@ def main():
         type=str,
         default='.env',
         help='Path to .env file (default: .env)'
+    )
+    parser.add_argument(
+        '--recreate-topic',
+        action='store_true',
+        help='Delete and recreate the Kafka topic before producing messages'
     )
     
     args = parser.parse_args()
@@ -231,27 +308,26 @@ def main():
     # Find CSV files
     try:
         csv_files = find_csv_files(input_path)
-        print(f"Found {len(csv_files)} CSV file(s) to process")
+        print(f"Found {len(csv_files)} CSV file(s) to process\n")
     except ValueError as e:
         print(f"ERROR: {e}", file=sys.stderr)
         sys.exit(1)
     
-    # Determine directory for schema lookup
-    schema_dir = csv_files[0].parent
+    # Get Kafka topic
+    kafka_topic = os.getenv('KAFKA_TOPIC')
     
-    # Load Avro schema
-    try:
-        schema_path = find_avro_schema(schema_dir)
-        print(f"Loading Avro schema from {schema_path.name}")
-        avro_schema = load_avro_schema(schema_path)
-        print(f"Schema loaded: {avro_schema['namespace']}.{avro_schema['name']}\n")
-    except (ValueError, json.JSONDecodeError) as e:
-        print(f"ERROR: {e}", file=sys.stderr)
-        sys.exit(1)
+    # Recreate topic if requested
+    if args.recreate_topic:
+        if not kafka_topic:
+            print("ERROR: KAFKA_TOPIC not set in environment", file=sys.stderr)
+            sys.exit(1)
+        
+        if not recreate_topic(kafka_topic):
+            print("ERROR: Failed to recreate topic", file=sys.stderr)
+            sys.exit(1)
     
     # Create Kafka producer
     producer = create_kafka_producer()
-    kafka_topic = os.getenv('KAFKA_TOPIC')
     
     if producer and not kafka_topic:
         print("ERROR: KAFKA_TOPIC not set in environment", file=sys.stderr)
@@ -266,7 +342,7 @@ def main():
     for idx, csv_file in enumerate(csv_files, start=1):
         thread = threading.Thread(
             target=process_csv_file,
-            args=(csv_file, avro_schema, idx, producer, kafka_topic),
+            args=(csv_file, idx, producer, kafka_topic),
             name=f"CSVProcessor-{idx}"
         )
         threads.append(thread)

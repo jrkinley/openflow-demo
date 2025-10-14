@@ -1,6 +1,6 @@
 # Historical Quotes
 
-Process historical stock quote CSV files and produce to Kafka in Avro format.
+Process historical stock quote CSV files and produce to Kafka in JSON format.
 
 ## Setup
 
@@ -35,9 +35,14 @@ uv run python main.py ./data
 
 # Process a single CSV file
 uv run python main.py ./data/HistoricalData_SNOW.csv
+
+# Recreate (truncate) the topic before producing
+uv run python main.py ./data --recreate-topic
 ```
 
 **Print-only mode**: If `KAFKA_BOOTSTRAP_SERVERS` is not set, records are printed instead of sent to Kafka.
+
+**Topic recreation**: The `--recreate-topic` flag deletes and recreates the topic using cluster defaults, waiting 10 seconds between operations for Kafka cleanup. Note: This requires your SCRAM credentials to have admin permissions for topic management. If you get authorization errors, you can skip this flag and manually create/manage the topic.
 
 ### Consumer
 
@@ -56,7 +61,7 @@ The consumer starts from the beginning of the topic by default.
 ## Features
 
 - Multi-threaded CSV processing (one thread per file)
-- Avro serialization with schema validation
+- JSON serialization
 - AWS MSK support (SASL_SSL with SCRAM-SHA-512)
 - Partitioning by stock symbol
 
