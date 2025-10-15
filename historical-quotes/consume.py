@@ -117,34 +117,41 @@ def main():
                 print(f"\nReached message limit of {args.limit}")
                 break
             
-            # Poll for messages
-            msg = consumer.poll(timeout=1.0)
+            # Consume messages (returns a list)
+            num_messages = args.limit - message_count if args.limit else 100
+            messages = consumer.consume(num_messages=min(num_messages, 100), timeout=1.0)
             
-            if msg is None:
+            if not messages:
                 continue
             
-            if msg.error():
-                if msg.error().code() == KafkaError._PARTITION_EOF:
-                    # End of partition, continue polling
-                    print(f"Reached end of partition {msg.partition()}")
+            # Process each message
+            for msg in messages:
+                if msg.error():
+                    if msg.error().code() == KafkaError._PARTITION_EOF:
+                        # End of partition, continue
+                        print(f"Reached end of partition {msg.partition()}")
+                        continue
+                    else:
+                        print(f"Consumer error: {msg.error()}", file=sys.stderr)
+                        break
+                
+                # Deserialize and print the message
+                try:
+                    key = msg.key().decode('utf-8') if msg.key() else None
+                    record = deserialize_json_record(msg.value())
+                    
+                    message_count += 1
+                    print(f"[{message_count}] Topic: {msg.topic()}, Partition: {msg.partition()}, "
+                          f"Offset: {msg.offset()}, Key: {key}")
+                    print(f"    {record}")
+                    
+                    # Check limit after each message
+                    if args.limit and message_count >= args.limit:
+                        break
+                    
+                except Exception as e:
+                    print(f"Error deserializing message: {e}", file=sys.stderr)
                     continue
-                else:
-                    print(f"Consumer error: {msg.error()}", file=sys.stderr)
-                    break
-            
-            # Deserialize and print the message
-            try:
-                key = msg.key().decode('utf-8') if msg.key() else None
-                record = deserialize_json_record(msg.value())
-                
-                message_count += 1
-                print(f"[{message_count}] Topic: {msg.topic()}, Partition: {msg.partition()}, "
-                      f"Offset: {msg.offset()}, Key: {key}")
-                print(f"    {record}")
-                
-            except Exception as e:
-                print(f"Error deserializing message: {e}", file=sys.stderr)
-                continue
     
     except KeyboardInterrupt:
         print("\n\nInterrupted by user")

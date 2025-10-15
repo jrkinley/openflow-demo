@@ -31,13 +31,13 @@ Process CSV files and produce to Kafka:
 
 ```bash
 # Process all CSV files in a directory
-uv run python main.py ./data
+uv run python produce.py ./data
 
 # Process a single CSV file
-uv run python main.py ./data/HistoricalData_SNOW.csv
+uv run python produce.py ./data/HistoricalData_SNOW.csv
 
 # Recreate (truncate) the topic before producing
-uv run python main.py ./data --recreate-topic
+uv run python produce.py ./data --recreate-topic
 ```
 
 **Print-only mode**: If `KAFKA_BOOTSTRAP_SERVERS` is not set, records are printed instead of sent to Kafka.
