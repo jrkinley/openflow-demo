@@ -58,10 +58,22 @@ uv run python consume.py
 
 The consumer starts from the beginning of the topic by default.
 
+### Streamlit Visualization App
+
+A Streamlit application is available for visualizing stock quote history in Snowflake. See `snowflake/streamlit_app.py` for the full implementation.
+
+The app provides:
+- 📊 Interactive price charts and comparisons
+- 📈 Cumulative returns analysis
+- 📊 Volume trends and statistics
+- 🕯️ Candlestick-style price range visualization
+- 📥 Data export capabilities
+
 ## Features
 
 - Multi-threaded CSV processing (one thread per file)
 - JSON serialization
 - AWS MSK support (SASL_SSL with SCRAM-SHA-512)
 - Partitioning by stock symbol
+- Streamlit visualization for Snowflake
 
