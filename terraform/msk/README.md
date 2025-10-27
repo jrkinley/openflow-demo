@@ -10,7 +10,7 @@ terraform init
 terraform apply -var-file="examples/new-vpc.tfvars" -var="kafka_password=YourPassword"
 
 # Enable public access via AWS Console
-# MSK Console → Your Cluster → Edit → Networking → Public Access: Turn On
+# MSK Console → Your Cluster → Properties → Networking Settings → Edit → Public Access: Turn On
 
 # Test connection
 ./test/setup_and_test.sh
@@ -50,6 +50,30 @@ terraform output -raw kafka_password               # Password
 The `test/` folder contains automated setup and testing scripts:
 - `setup_and_test.sh` - Main test script
 - `setup_acls_with_iam.sh` - ACL configuration for public access
+
+## Troubleshooting
+
+### Secret Already Scheduled for Deletion
+
+If you encounter this error:
+```
+Error: creating Secrets Manager Secret (AmazonMSK_openflow-msk-demo): 
+You can't create this secret because a secret with this name is already 
+scheduled for deletion.
+```
+
+The secret exists but is in the deletion recovery window. Force delete it immediately:
+
+```bash
+aws secretsmanager delete-secret \
+  --secret-id AmazonMSK_openflow-msk-demo \
+  --force-delete-without-recovery
+```
+
+Then retry:
+```bash
+terraform apply -var-file="examples/new-vpc.tfvars" -var="kafka_password=YourPassword"
+```
 
 ## Cleanup
 
