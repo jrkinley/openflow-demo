@@ -13,29 +13,15 @@ terraform apply -var-file="examples/new-vpc.tfvars" -var="kafka_password=YourPas
 # MSK Console → Your Cluster → Properties → Networking Settings → Edit → Public Access: Turn On
 
 # Test connection
-./test/setup_and_test.sh
+cd test
+.setup_and_test.sh
 ```
-
-## Configuration
-
-| Setting | Default | Description |
-|---------|---------|-------------|
-| **Brokers** | 3 × `kafka.t3.small` | Demo-sized instances |
-| **Storage** | 100GB per broker | EBS storage |
-| **Auth** | SASL/SCRAM + IAM | Dual authentication |
-| **Encryption** | TLS | In-transit encryption |
 
 ## Public Access Requirements
 
 - **Public subnets** with Internet Gateway routes
 - **Authentication enabled** (SASL/SCRAM ✓)
 - **TLS encryption** (✓)
-
-Check subnet type:
-```bash
-aws ec2 describe-subnets --subnet-ids subnet-xxx \
-  --query 'Subnets[].{SubnetId:SubnetId,Public:MapPublicIpOnLaunch}'
-```
 
 ## Connection Details
 
@@ -44,12 +30,6 @@ terraform output msk_bootstrap_brokers_sasl_scram  # Connection string
 terraform output kafka_username                    # Username
 terraform output -raw kafka_password               # Password
 ```
-
-## Testing
-
-The `test/` folder contains automated setup and testing scripts:
-- `setup_and_test.sh` - Main test script
-- `setup_acls_with_iam.sh` - ACL configuration for public access
 
 ## Troubleshooting
 
