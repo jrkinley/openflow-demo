@@ -56,30 +56,6 @@ def load_data():
     return df
 
 
-@st.cache_data(ttl=600)
-def load_forecast_data():
-    """Load forecast data from Snowflake Cortex ML."""
-    try:
-        conn = st.connection("snowflake")
-        
-        query = """
-        SELECT 
-            SERIES::STRING AS SYMBOL,
-            TS,
-            FORECAST,
-            LOWER_BOUND,
-            UPPER_BOUND
-        FROM "FORECAST-STOCK-QUOTES"
-        ORDER BY TS
-        """
-        
-        df = conn.query(query)
-        df['TS'] = pd.to_datetime(df['TS'])
-        
-        return df
-    except Exception as e:
-        st.warning(f"Could not load forecast data: {str(e)}")
-        return pd.DataFrame()
 
 
 @st.cache_data
@@ -187,154 +163,6 @@ try:
                 )
                 st.caption(f"Avg Volume: {format_large_number(avg_volume)}")
     
-    # Price comparison chart
-    st.header("Price Comparison")
-    st.markdown("Track closing prices over time to compare absolute stock values and identify trends.")
-    
-    price_chart = alt.Chart(filtered_df).mark_line(point=True).encode(
-        x=alt.X('QUOTE_DATE:T', title='Date', axis=alt.Axis(format='%b %Y')),
-        y=alt.Y('CLOSE_LAST_USD:Q', title='Closing Price (USD)', scale=alt.Scale(zero=False)),
-        color=alt.Color('SYMBOL:N', title='Symbol', legend=alt.Legend(orient='top')),
-        tooltip=[
-            alt.Tooltip('SYMBOL:N', title='Symbol'),
-            alt.Tooltip('QUOTE_DATE:T', title='Date', format='%b %d, %Y'),
-            alt.Tooltip('CLOSE_LAST_USD:Q', title='Close', format='$.2f'),
-            alt.Tooltip('VOLUME:Q', title='Volume', format=',')
-        ]
-    ).properties(
-        height=400
-    ).interactive()
-    
-    st.altair_chart(price_chart, use_container_width=True)
-    
-    # Forecast section
-    st.header("Price Forecast")
-    st.markdown("AI-powered price predictions using Snowflake Cortex ML. The shaded area represents the confidence interval (lower and upper bounds).")
-    
-    # Load forecast data
-    forecast_df = load_forecast_data()
-    
-    if not forecast_df.empty:
-        # Filter forecast data for selected symbols
-        filtered_forecast_df = forecast_df[forecast_df['SYMBOL'].isin(selected_symbols)].copy()
-        
-        if not filtered_forecast_df.empty:
-            # Define shared color scale
-            color_scale = alt.Color(
-                'SYMBOL:N', 
-                title='Symbol', 
-                legend=alt.Legend(orient='top', symbolType='stroke', symbolStrokeWidth=3)
-            )
-            
-            # Create confidence interval area chart (no legend, matches forecast colors)
-            confidence_area = alt.Chart(filtered_forecast_df).mark_area(opacity=0.2).encode(
-                x=alt.X('TS:T', title='Date', axis=alt.Axis(format='%b %Y')),
-                y=alt.Y('LOWER_BOUND:Q', title='Forecasted Price (USD)', scale=alt.Scale(zero=False)),
-                y2='UPPER_BOUND:Q',
-                color=alt.Color('SYMBOL:N', legend=None)
-            )
-            
-            # Create the forecast line chart with legend
-            forecast_line = alt.Chart(filtered_forecast_df).mark_line(point=True, strokeWidth=2).encode(
-                x=alt.X('TS:T'),
-                y=alt.Y('FORECAST:Q'),
-                color=color_scale,
-                tooltip=[
-                    alt.Tooltip('SYMBOL:N', title='Symbol'),
-                    alt.Tooltip('TS:T', title='Date', format='%b %d, %Y'),
-                    alt.Tooltip('FORECAST:Q', title='Forecast', format='$.2f'),
-                    alt.Tooltip('LOWER_BOUND:Q', title='Lower Bound', format='$.2f'),
-                    alt.Tooltip('UPPER_BOUND:Q', title='Upper Bound', format='$.2f')
-                ]
-            )
-            
-            forecast_chart = (confidence_area + forecast_line).properties(
-                height=400
-            ).interactive()
-            
-            st.altair_chart(forecast_chart, use_container_width=True)
-        else:
-            st.info("No forecast data available for the selected symbols.")
-    else:
-        st.info("Forecast data is not available. Please ensure the FORECAST-STOCK-QUOTES table exists and contains data.")
-    
-    # Normalized returns comparison
-    st.header("Cumulative Returns Comparison")
-    st.markdown("Compare relative performance across stocks by normalizing returns to the same starting point. This helps identify which stocks have outperformed regardless of their absolute price levels.")
-    st.markdown("_Returns normalized to 0% at the start date_")
-    
-    # Calculate normalized returns for each symbol
-    returns_data = []
-    for symbol in selected_symbols:
-        symbol_returns = calculate_returns(filtered_df, symbol)
-        returns_data.append(symbol_returns)
-    
-    if returns_data:
-        returns_df = pd.concat(returns_data, ignore_index=True)
-        
-        returns_chart = alt.Chart(returns_df).mark_line(size=3).encode(
-            x=alt.X('QUOTE_DATE:T', title='Date', axis=alt.Axis(format='%b %Y')),
-            y=alt.Y('CUMULATIVE_RETURN:Q', title='Cumulative Return (%)', scale=alt.Scale(zero=False)),
-            color=alt.Color('SYMBOL:N', title='Symbol', legend=alt.Legend(orient='top')),
-            tooltip=[
-                alt.Tooltip('SYMBOL:N', title='Symbol'),
-                alt.Tooltip('QUOTE_DATE:T', title='Date', format='%b %d, %Y'),
-                alt.Tooltip('CUMULATIVE_RETURN:Q', title='Return', format='.2f')
-            ]
-        ).properties(
-            height=400
-        ).interactive()
-        
-        # Add zero line
-        zero_line = alt.Chart(pd.DataFrame({'y': [0]})).mark_rule(
-            strokeDash=[5, 5],
-            color='gray'
-        ).encode(y='y:Q')
-        
-        st.altair_chart(returns_chart + zero_line, use_container_width=True)
-    
-    # Volume analysis
-    st.header("Trading Volume Analysis")
-    st.markdown("Analyze trading activity and liquidity patterns. Higher volumes often indicate greater investor interest and can signal potential price movements.")
-    
-    col1, col2 = st.columns(2)
-    
-    with col1:
-        st.subheader("Volume Over Time")
-        volume_chart = alt.Chart(filtered_df).mark_bar().encode(
-            x=alt.X('QUOTE_DATE:T', title='Date', axis=alt.Axis(format='%b %Y')),
-            y=alt.Y('VOLUME:Q', title='Volume'),
-            color=alt.Color('SYMBOL:N', title='Symbol'),
-            tooltip=[
-                alt.Tooltip('SYMBOL:N', title='Symbol'),
-                alt.Tooltip('QUOTE_DATE:T', title='Date', format='%b %d, %Y'),
-                alt.Tooltip('VOLUME:Q', title='Volume', format=',')
-            ]
-        ).properties(
-            height=300
-        ).interactive()
-        
-        st.altair_chart(volume_chart, use_container_width=True)
-    
-    with col2:
-        st.subheader("Average Volume by Symbol")
-        avg_volume_df = filtered_df.groupby('SYMBOL')['VOLUME'].mean().reset_index()
-        avg_volume_df.columns = ['SYMBOL', 'AVG_VOLUME']
-        
-        avg_volume_chart = alt.Chart(avg_volume_df).mark_bar().encode(
-            x=alt.X('SYMBOL:N', title='Symbol', sort='-y'),
-            y=alt.Y('AVG_VOLUME:Q', title='Average Volume'),
-            color=alt.Color('SYMBOL:N', legend=None),
-            tooltip=[
-                alt.Tooltip('SYMBOL:N', title='Symbol'),
-                alt.Tooltip('AVG_VOLUME:Q', title='Avg Volume', format=',')
-            ]
-        ).properties(
-            height=300
-        )
-        
-        st.altair_chart(avg_volume_chart, use_container_width=True)
-    
     # Price range analysis (candlestick-style view)
     st.header("Price Range Analysis")
     st.markdown("Examine intraday price movements between opening, high, low, and closing prices. For single stocks, see candlestick-style visualization; for multiple stocks, compare daily volatility patterns.")
@@ -395,6 +223,103 @@ try:
         ).interactive()
         
         st.altair_chart(volatility_chart, use_container_width=True)
+    
+    # Volume analysis
+    st.header("Trading Volume Analysis")
+    st.markdown("Analyze trading activity and liquidity patterns. Higher volumes often indicate greater investor interest and can signal potential price movements.")
+    
+    col1, col2 = st.columns(2)
+    
+    with col1:
+        st.subheader("Volume Over Time")
+        volume_chart = alt.Chart(filtered_df).mark_bar().encode(
+            x=alt.X('QUOTE_DATE:T', title='Date', axis=alt.Axis(format='%b %Y')),
+            y=alt.Y('VOLUME:Q', title='Volume'),
+            color=alt.Color('SYMBOL:N', title='Symbol'),
+            tooltip=[
+                alt.Tooltip('SYMBOL:N', title='Symbol'),
+                alt.Tooltip('QUOTE_DATE:T', title='Date', format='%b %d, %Y'),
+                alt.Tooltip('VOLUME:Q', title='Volume', format=',')
+            ]
+        ).properties(
+            height=300
+        ).interactive()
+        
+        st.altair_chart(volume_chart, use_container_width=True)
+    
+    with col2:
+        st.subheader("Average Volume by Symbol")
+        avg_volume_df = filtered_df.groupby('SYMBOL')['VOLUME'].mean().reset_index()
+        avg_volume_df.columns = ['SYMBOL', 'AVG_VOLUME']
+        
+        avg_volume_chart = alt.Chart(avg_volume_df).mark_bar().encode(
+            x=alt.X('SYMBOL:N', title='Symbol', sort='-y'),
+            y=alt.Y('AVG_VOLUME:Q', title='Average Volume'),
+            color=alt.Color('SYMBOL:N', legend=None),
+            tooltip=[
+                alt.Tooltip('SYMBOL:N', title='Symbol'),
+                alt.Tooltip('AVG_VOLUME:Q', title='Avg Volume', format=',')
+            ]
+        ).properties(
+            height=300
+        )
+        
+        st.altair_chart(avg_volume_chart, use_container_width=True)
+    
+    # Normalized returns comparison
+    st.header("Cumulative Returns Comparison")
+    st.markdown("Compare relative performance across stocks by normalizing returns to the same starting point. This helps identify which stocks have outperformed regardless of their absolute price levels.")
+    st.markdown("_Returns normalized to 0% at the start date_")
+    
+    # Calculate normalized returns for each symbol
+    returns_data = []
+    for symbol in selected_symbols:
+        symbol_returns = calculate_returns(filtered_df, symbol)
+        returns_data.append(symbol_returns)
+    
+    if returns_data:
+        returns_df = pd.concat(returns_data, ignore_index=True)
+        
+        returns_chart = alt.Chart(returns_df).mark_line(size=3).encode(
+            x=alt.X('QUOTE_DATE:T', title='Date', axis=alt.Axis(format='%b %Y')),
+            y=alt.Y('CUMULATIVE_RETURN:Q', title='Cumulative Return (%)', scale=alt.Scale(zero=False)),
+            color=alt.Color('SYMBOL:N', title='Symbol', legend=alt.Legend(orient='top')),
+            tooltip=[
+                alt.Tooltip('SYMBOL:N', title='Symbol'),
+                alt.Tooltip('QUOTE_DATE:T', title='Date', format='%b %d, %Y'),
+                alt.Tooltip('CUMULATIVE_RETURN:Q', title='Return', format='.2f')
+            ]
+        ).properties(
+            height=400
+        ).interactive()
+        
+        # Add zero line
+        zero_line = alt.Chart(pd.DataFrame({'y': [0]})).mark_rule(
+            strokeDash=[5, 5],
+            color='gray'
+        ).encode(y='y:Q')
+        
+        st.altair_chart(returns_chart + zero_line, use_container_width=True)
+    
+    # Price comparison chart
+    st.header("Price Comparison")
+    st.markdown("Track closing prices over time to compare absolute stock values and identify trends.")
+    
+    price_chart = alt.Chart(filtered_df).mark_line(point=True).encode(
+        x=alt.X('QUOTE_DATE:T', title='Date', axis=alt.Axis(format='%b %Y')),
+        y=alt.Y('CLOSE_LAST_USD:Q', title='Closing Price (USD)', scale=alt.Scale(zero=False)),
+        color=alt.Color('SYMBOL:N', title='Symbol', legend=alt.Legend(orient='top')),
+        tooltip=[
+            alt.Tooltip('SYMBOL:N', title='Symbol'),
+            alt.Tooltip('QUOTE_DATE:T', title='Date', format='%b %d, %Y'),
+            alt.Tooltip('CLOSE_LAST_USD:Q', title='Close', format='$.2f'),
+            alt.Tooltip('VOLUME:Q', title='Volume', format=',')
+        ]
+    ).properties(
+        height=400
+    ).interactive()
+    
+    st.altair_chart(price_chart, use_container_width=True)
     
     # Data table
     with st.expander("View Raw Data"):
