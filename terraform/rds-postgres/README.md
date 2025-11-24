@@ -99,6 +99,63 @@ The RDS instance is automatically configured with:
 - **Backup Retention**: 7 days (required for CDC)
 - **Publication**: `openflow` publication created for CDC consumers
 - **Demo Schema**: `nasdaq` schema with stock market data
+- **WAL Retention Limit**: 50GB per replication slot to prevent storage issues
+
+## Managing Replication Slots
+
+Replication slots can accumulate WAL files and fill up storage if not actively consumed. Here's how to manage them:
+
+### List All Replication Slots
+
+```sql
+-- View all replication slots with status and WAL usage
+SELECT 
+    slot_name,
+    slot_type,
+    database,
+    active,
+    pg_size_pretty(pg_wal_lsn_diff(pg_current_wal_lsn(), restart_lsn)) as retained_wal,
+    restart_lsn
+FROM pg_replication_slots;
+```
+
+### Check Storage Impact
+
+```sql
+-- Check database size vs WAL size
+SELECT 
+    pg_size_pretty(pg_database_size('postgres')) as db_size,
+    pg_size_pretty(sum(size)) as wal_size
+FROM pg_ls_waldir();
+```
+
+### Delete a Replication Slot
+
+**⚠️ Warning**: Deleting a slot will break CDC continuity. Only delete if:
+- The slot is inactive and no longer needed
+- WAL files are filling up storage
+- You plan to re-create the slot and re-snapshot
+
+```sql
+-- Drop an inactive replication slot
+SELECT pg_drop_replication_slot('slot_name_here');
+```
+
+### Monitor Slot Health
+
+Run this query regularly to prevent storage issues:
+```sql
+SELECT 
+    slot_name,
+    active,
+    pg_size_pretty(pg_wal_lsn_diff(pg_current_wal_lsn(), restart_lsn)) as lag_size,
+    CASE 
+        WHEN pg_wal_lsn_diff(pg_current_wal_lsn(), restart_lsn) > 42949672960 THEN 'CRITICAL (>40GB)'
+        WHEN pg_wal_lsn_diff(pg_current_wal_lsn(), restart_lsn) > 21474836480 THEN 'WARNING (>20GB)'
+        ELSE 'OK'
+    END as status
+FROM pg_replication_slots;
+```
 
 ## Requirements
 
