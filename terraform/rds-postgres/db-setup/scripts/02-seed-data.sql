@@ -6,7 +6,7 @@
 SET search_path TO nasdaq, public;
 
 -- Create a temporary table to load CSV data
-CREATE TEMP TABLE temp_tsla_data (
+CREATE TEMP TABLE temp_stock_data (
     date_str TEXT,
     close_last TEXT,
     volume TEXT,
@@ -17,7 +17,7 @@ CREATE TEMP TABLE temp_tsla_data (
 
 -- Load CSV data using \copy command
 \set symbol 'TSLA'
-\copy temp_tsla_data FROM 'db-setup/scripts/HistoricalData_TSLA.csv' WITH (FORMAT csv, HEADER true);
+\copy temp_stock_data FROM 'db-setup/scripts/HistoricalData_TSLA.csv' WITH (FORMAT csv, HEADER true);
 
 -- Function to clean price data (remove $ and convert to decimal)
 CREATE OR REPLACE FUNCTION clean_price(price_text TEXT) 
@@ -45,7 +45,7 @@ SELECT
     clean_price(open_price) as open_price,
     clean_price(high_price) as high_price,
     clean_price(low_price) as low_price
-FROM temp_tsla_data
+FROM temp_stock_data
 WHERE date_str IS NOT NULL 
   AND date_str != ''
 ON CONFLICT (symbol, quote_date) DO NOTHING;

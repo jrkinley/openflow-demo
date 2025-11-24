@@ -52,7 +52,8 @@ psql -h $RDS_HOST -U postgres -d postgres
 SELECT * FROM nasdaq.stock_quotes ORDER BY quote_date DESC LIMIT 10;
 
 # Test CDC
-UPDATE nasdaq.stock_quotes SET close_price=230.00 WHERE symbol='SNOW' AND quote_date='2025-09-10';
+UPDATE nasdaq.stock_quotes SET close_price=0.0 WHERE symbol='TSLA' AND quote_date='2025-11-06';
+UPDATE nasdaq.stock_quotes SET close_price=445.9100 WHERE symbol='TSLA' AND quote_date='2025-11-06';
 ```
 
 ## Configuration Examples

@@ -103,13 +103,20 @@ resource "aws_db_parameter_group" "rds-pg" {
     apply_method = "pending-reboot"
   }
 
+  parameter {
+    name  = "max_slot_wal_keep_size"
+    value = "51200"  # 50GB limit to prevent WAL buildup
+  }
+
   tags = local.common_tags
 }
 
 resource "aws_db_instance" "rds-pg" {
   identifier             = var.name
   instance_class         = var.instance_class
-  allocated_storage      = 5
+  allocated_storage      = 20
+  max_allocated_storage  = 100
+  storage_type           = "gp3"
   engine                 = "postgres"
   engine_version         = var.engine_version
   username               = var.db_username
