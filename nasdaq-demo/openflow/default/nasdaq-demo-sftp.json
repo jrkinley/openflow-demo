@@ -1,0 +1,11 @@
+{
+  "flow" : {
+    "createdTimestamp" : 1764348028098,
+    "description" : "Moving pdf earnings reports from a SFTP server to a Snowflake stage. ",
+    "identifier" : "nasdaq-demo-sftp",
+    "lastModifiedTimestamp" : 1764348028098,
+    "name" : "nasdaq-demo-sftp",
+    "versionCount" : 0
+  },
+  "latest" : false
+}
