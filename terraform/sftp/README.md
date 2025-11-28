@@ -64,7 +64,7 @@ Use the `upload_files.sh` script to upload all files from a directory:
 ./upload_files.sh /path/to/directory
 
 # Example: Upload historical data files
-./upload_files.sh ../historical-quotes/data
+./upload_files.sh ../nasdaq-demo/data
 ```
 
 The script will:

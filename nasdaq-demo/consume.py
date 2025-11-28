@@ -52,8 +52,8 @@ def create_kafka_consumer() -> Optional[Consumer]:
         return None
     
     # Add consumer-specific configuration
-    config['group.id'] = 'historical-quotes-consumer'
-    config['client.id'] = 'historical-quotes-consumer'
+    config['group.id'] = 'nasdaq-demo-consumer'
+    config['client.id'] = 'nasdaq-demo-consumer'
     config['auto.offset.reset'] = 'earliest'  # Start from beginning
     config['enable.auto.commit'] = True
     

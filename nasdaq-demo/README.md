@@ -1,4 +1,4 @@
-# Historical Quotes
+# NASDAQ Demo
 
 Process historical stock quote CSV files and produce to Kafka in JSON format.
 

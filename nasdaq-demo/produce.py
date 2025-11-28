@@ -51,7 +51,7 @@ def create_kafka_producer() -> Optional[Producer]:
         return None
     
     # Add producer-specific configuration
-    config['client.id'] = 'historical-quotes-producer'
+    config['client.id'] = 'nasdaq-demo-producer'
     
     print(f"Creating Kafka producer with bootstrap servers: {config['bootstrap.servers']}")
     return Producer(config)
