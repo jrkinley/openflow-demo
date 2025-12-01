@@ -20,7 +20,7 @@
         "comments" : "",
         "groupId" : "flow-contents-group",
         "id" : "5ab85d51-b048-3d60-b52a-b03a2633d42b",
-        "name" : "SplitJson",
+        "name" : "SplitJsonArray",
         "type" : "PROCESSOR"
       },
       "flowFileExpiration" : "0 sec",
@@ -67,7 +67,7 @@
         "comments" : "",
         "groupId" : "flow-contents-group",
         "id" : "024f0cd7-3bea-3e12-8d5b-c3dba32372be",
-        "name" : "EvaluateJsonPath",
+        "name" : "SetSymbolAttribute",
         "type" : "PROCESSOR"
       },
       "zIndex" : 5
@@ -80,7 +80,7 @@
         "comments" : "",
         "groupId" : "flow-contents-group",
         "id" : "024f0cd7-3bea-3e12-8d5b-c3dba32372be",
-        "name" : "EvaluateJsonPath",
+        "name" : "SetSymbolAttribute",
         "type" : "PROCESSOR"
       },
       "flowFileExpiration" : "0 sec",
@@ -97,7 +97,7 @@
         "comments" : "",
         "groupId" : "flow-contents-group",
         "id" : "5ab85d51-b048-3d60-b52a-b03a2633d42b",
-        "name" : "SplitJson",
+        "name" : "SplitJsonArray",
         "type" : "PROCESSOR"
       },
       "zIndex" : 6
@@ -292,7 +292,7 @@
     "inputPorts" : [ ],
     "labels" : [ ],
     "maxConcurrentTasks" : 1,
-    "name" : "Versioning_(Dev)",
+    "name" : "Versioning (Development)",
     "outputPorts" : [ ],
     "position" : {
       "x" : 0.0,
@@ -315,7 +315,7 @@
       "groupIdentifier" : "flow-contents-group",
       "identifier" : "024f0cd7-3bea-3e12-8d5b-c3dba32372be",
       "maxBackoffPeriod" : "10 mins",
-      "name" : "EvaluateJsonPath",
+      "name" : "SetSymbolAttribute",
       "penaltyDuration" : "30 sec",
       "position" : {
         "x" : -160.0,
@@ -385,7 +385,7 @@
     }, {
       "autoTerminatedRelationships" : [ ],
       "backoffMechanism" : "PENALIZE_FLOWFILE",
-      "bulletinLevel" : "WARN",
+      "bulletinLevel" : "INFO",
       "bundle" : {
         "artifact" : "runtime-record-generation-nar",
         "group" : "com.snowflake.openflow.runtime",
@@ -457,7 +457,7 @@
       "groupIdentifier" : "flow-contents-group",
       "identifier" : "5ab85d51-b048-3d60-b52a-b03a2633d42b",
       "maxBackoffPeriod" : "10 mins",
-      "name" : "SplitJson",
+      "name" : "SplitJsonArray",
       "penaltyDuration" : "30 sec",
       "position" : {
         "x" : -160.0,
@@ -512,6 +512,6 @@
   "snapshotMetadata" : {
     "author" : "JKINLEY",
     "flowIdentifier" : "versioning",
-    "timestamp" : 1764601478607
+    "timestamp" : 1764601948356
   }
 }
