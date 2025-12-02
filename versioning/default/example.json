@@ -125,6 +125,7 @@
     "maxConcurrentTasks" : 1,
     "name" : "Versioning (Dev)",
     "outputPorts" : [ ],
+    "parameterContextName" : "Versioning Context",
     "position" : {
       "x" : 0.0,
       "y" : 0.0
@@ -238,7 +239,7 @@
       "properties" : {
         "Batch Size" : "10",
         "Output Structure" : "JSON_ARRAY",
-        "JSON Schema" : "{\n    \"$schema\": \"https://json-schema.org/draft/2020-12/schema\",\n    \"title\": \"HistoricalQuote\",\n    \"description\": \"Historical stock prices and volumes\",\n    \"type\": \"object\",\n    \"properties\": {\n        \"symbol\": {\n            \"type\": \"string\",\n            \"description\": \"Stock ticker symbol (e.g., AAPL, MSFT)\",\n            \"pattern\": \"^[A-Z]{1,5}$\"\n        },\n        \"date\": {\n            \"type\": \"string\",\n            \"description\": \"Trading date in MM/DD/YYYY format\",\n            \"pattern\": \"^(0[1-9]|1[0-2])\\\\/(0[1-9]|[12][0-9]|3[01])\\\\/\\\\d{4}$\"\n        },\n        \"close_last\": {\n            \"type\": \"string\",\n            \"description\": \"Closing price (string format with $ prefix)\",\n            \"pattern\": \"^\\\\$\\\\d{1,4}\\\\.\\\\d{2}$\"\n        },\n        \"volume\": {\n            \"type\": \"integer\",\n            \"description\": \"Trading volume (number of shares traded)\"\n        },\n        \"open\": {\n            \"type\": \"string\",\n            \"description\": \"Opening price (string format with $ prefix)\",\n            \"pattern\": \"^\\\\$\\\\d{1,4}\\\\.\\\\d{2}$\"\n        },\n        \"high\": {\n            \"type\": \"string\",\n            \"description\": \"Highest price (string format with $ prefix)\",\n            \"pattern\": \"^\\\\$\\\\d{1,4}\\\\.\\\\d{2}$\"\n        },\n        \"low\": {\n            \"type\": \"string\",\n            \"description\": \"Lowest price (string format with $ prefix)\",\n            \"pattern\": \"^\\\\$\\\\d{1,4}\\\\.\\\\d{2}$\"\n        }\n    },\n    \"required\": [\n        \"symbol\",\n        \"date\",\n        \"close_last\",\n        \"volume\",\n        \"open\",\n        \"high\",\n        \"low\"\n    ]\n}"
+        "JSON Schema" : "#{JSON Schema}"
       },
       "propertyDescriptors" : {
         "Batch Size" : {
@@ -338,11 +339,25 @@
   },
   "flowEncodingVersion" : "1.0",
   "latest" : false,
-  "parameterContexts" : { },
+  "parameterContexts" : {
+    "Versioning Context" : {
+      "componentType" : "PARAMETER_CONTEXT",
+      "description" : "Example parameter context",
+      "inheritedParameterContexts" : [ ],
+      "name" : "Versioning Context",
+      "parameters" : [ {
+        "description" : "Json 2020-12 schema for GenerateJSON processor.",
+        "name" : "JSON Schema",
+        "provided" : false,
+        "sensitive" : false,
+        "value" : "{\n    \"$schema\": \"https://json-schema.org/draft/2020-12/schema\",\n    \"title\": \"HistoricalQuote\",\n    \"description\": \"Historical stock prices and volumes\",\n    \"type\": \"object\",\n    \"properties\": {\n        \"symbol\": {\n            \"type\": \"string\",\n            \"description\": \"Stock ticker symbol (e.g., AAPL, MSFT)\",\n            \"pattern\": \"^[A-Z]{1,5}$\"\n        },\n        \"date\": {\n            \"type\": \"string\",\n            \"description\": \"Trading date in MM/DD/YYYY format\",\n            \"pattern\": \"^(0[1-9]|1[0-2])\\\\/(0[1-9]|[12][0-9]|3[01])\\\\/\\\\d{4}$\"\n        },\n        \"close_last\": {\n            \"type\": \"string\",\n            \"description\": \"Closing price (string format with $ prefix)\",\n            \"pattern\": \"^\\\\$\\\\d{1,4}\\\\.\\\\d{2}$\"\n        },\n        \"volume\": {\n            \"type\": \"integer\",\n            \"description\": \"Trading volume (number of shares traded)\"\n        },\n        \"open\": {\n            \"type\": \"string\",\n            \"description\": \"Opening price (string format with $ prefix)\",\n            \"pattern\": \"^\\\\$\\\\d{1,4}\\\\.\\\\d{2}$\"\n        },\n        \"high\": {\n            \"type\": \"string\",\n            \"description\": \"Highest price (string format with $ prefix)\",\n            \"pattern\": \"^\\\\$\\\\d{1,4}\\\\.\\\\d{2}$\"\n        },\n        \"low\": {\n            \"type\": \"string\",\n            \"description\": \"Lowest price (string format with $ prefix)\",\n            \"pattern\": \"^\\\\$\\\\d{1,4}\\\\.\\\\d{2}$\"\n        }\n    },\n    \"required\": [\n        \"symbol\",\n        \"date\",\n        \"close_last\",\n        \"volume\",\n        \"open\",\n        \"high\",\n        \"low\"\n    ]\n}"
+      } ]
+    }
+  },
   "parameterProviders" : { },
   "snapshotMetadata" : {
     "author" : "JKINLEY",
     "flowIdentifier" : "example",
-    "timestamp" : 1764678075534
+    "timestamp" : 1764682611595
   }
 }
