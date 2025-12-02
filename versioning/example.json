@@ -5,7 +5,7 @@
     "description" : "How to version control NiFi flows.",
     "identifier" : "versioning",
     "lastModifiedTimestamp" : 1764601477791,
-    "name" : "example",
+    "name" : "versioning",
     "versionCount" : 0
   },
   "flowContents" : {
