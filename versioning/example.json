@@ -3,9 +3,9 @@
   "flow" : {
     "createdTimestamp" : 1764601477791,
     "description" : "How to version control NiFi flows.",
-    "identifier" : "versioning",
+    "identifier" : "example",
     "lastModifiedTimestamp" : 1764601477791,
-    "name" : "versioning",
+    "name" : "example",
     "versionCount" : 0
   },
   "flowContents" : {
