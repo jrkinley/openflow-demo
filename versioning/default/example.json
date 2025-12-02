@@ -1,0 +1,11 @@
+{
+  "flow" : {
+    "createdTimestamp" : 1764671597848,
+    "description" : "How to version control a NiFi flow.",
+    "identifier" : "example",
+    "lastModifiedTimestamp" : 1764671597848,
+    "name" : "example",
+    "versionCount" : 0
+  },
+  "latest" : false
+}
