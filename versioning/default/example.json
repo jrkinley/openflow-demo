@@ -216,7 +216,7 @@
     }, {
       "autoTerminatedRelationships" : [ ],
       "backoffMechanism" : "PENALIZE_FLOWFILE",
-      "bulletinLevel" : "WARN",
+      "bulletinLevel" : "DEBUG",
       "bundle" : {
         "artifact" : "runtime-record-generation-nar",
         "group" : "com.snowflake.openflow.runtime",
@@ -343,6 +343,6 @@
   "snapshotMetadata" : {
     "author" : "JKINLEY",
     "flowIdentifier" : "example",
-    "timestamp" : 1764671598566
+    "timestamp" : 1764672438363
   }
 }
