@@ -1,11 +1,11 @@
 {
   "externalControllerServices" : { },
   "flow" : {
-    "createdTimestamp" : 1764670925953,
-    "description" : "How to version control NiFi flows.",
-    "identifier" : "versioning",
-    "lastModifiedTimestamp" : 1764670925953,
-    "name" : "versioning",
+    "createdTimestamp" : 1764671597848,
+    "description" : "How to version control a NiFi flow.",
+    "identifier" : "example",
+    "lastModifiedTimestamp" : 1764671597848,
+    "name" : "example",
     "versionCount" : 0
   },
   "flowContents" : {
@@ -216,7 +216,7 @@
     }, {
       "autoTerminatedRelationships" : [ ],
       "backoffMechanism" : "PENALIZE_FLOWFILE",
-      "bulletinLevel" : "WARN",
+      "bulletinLevel" : "DEBUG",
       "bundle" : {
         "artifact" : "runtime-record-generation-nar",
         "group" : "com.snowflake.openflow.runtime",
@@ -342,7 +342,7 @@
   "parameterProviders" : { },
   "snapshotMetadata" : {
     "author" : "JKINLEY",
-    "flowIdentifier" : "versioning",
-    "timestamp" : 1764670926664
+    "flowIdentifier" : "example",
+    "timestamp" : 1764672438363
   }
 }
