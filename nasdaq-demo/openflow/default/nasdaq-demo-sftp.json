@@ -77,7 +77,7 @@
       "bundle" : {
         "artifact" : "runtime-snowflake-connection-service-nar",
         "group" : "com.snowflake.openflow.runtime",
-        "version" : "2025.10.2.19"
+        "version" : "2025.12.3.16"
       },
       "comments" : "",
       "componentType" : "CONTROLLER_SERVICE",
@@ -85,7 +85,7 @@
         "bundle" : {
           "artifact" : "nifi-standard-services-api-nar",
           "group" : "org.apache.nifi",
-          "version" : "2025.9.30.19"
+          "version" : "2025.12.3.16"
         },
         "type" : "org.apache.nifi.dbcp.DBCPService"
       } ],
@@ -233,7 +233,7 @@
       "bundle" : {
         "artifact" : "nifi-standard-nar",
         "group" : "org.apache.nifi",
-        "version" : "2025.10.2.19"
+        "version" : "2025.12.3.16"
       },
       "comments" : "",
       "componentType" : "PROCESSOR",
@@ -251,13 +251,13 @@
       "properties" : {
         "Port" : "22",
         "Remote File" : "${path}/${filename}",
+        "Log Level When File Not Found" : "ERROR",
         "Hostname" : "#{Hostname}",
         "Create Directory" : "false",
         "Use Compression" : "false",
         "Disable Directory Listing" : "false",
         "Send Keep Alive On Timeout" : "true",
         "Completion Strategy" : "None",
-        "fetchfiletransfer-notfound-loglevel" : "ERROR",
         "Connection Timeout" : "30 sec",
         "Data Timeout" : "30 sec",
         "Private Key Path" : "#{Private Key}",
@@ -280,11 +280,11 @@
           "name" : "Remote File",
           "sensitive" : false
         },
-        "proxy-configuration-service" : {
-          "displayName" : "Proxy Configuration Service",
+        "Log Level When File Not Found" : {
+          "displayName" : "Log Level When File Not Found",
           "dynamic" : false,
-          "identifiesControllerService" : true,
-          "name" : "proxy-configuration-service",
+          "identifiesControllerService" : false,
+          "name" : "Log Level When File Not Found",
           "sensitive" : false
         },
         "Hostname" : {
@@ -361,11 +361,11 @@
           "name" : "Private Key Passphrase",
           "sensitive" : true
         },
-        "fetchfiletransfer-notfound-loglevel" : {
-          "displayName" : "Log level when file not found",
+        "Proxy Configuration Service" : {
+          "displayName" : "Proxy Configuration Service",
           "dynamic" : false,
-          "identifiesControllerService" : false,
-          "name" : "fetchfiletransfer-notfound-loglevel",
+          "identifiesControllerService" : true,
+          "name" : "Proxy Configuration Service",
           "sensitive" : false
         },
         "Connection Timeout" : {
@@ -459,7 +459,7 @@
       "bundle" : {
         "artifact" : "runtime-snowflake-processors-nar",
         "group" : "com.snowflake.openflow.runtime",
-        "version" : "2025.10.2.19"
+        "version" : "2025.12.3.16"
       },
       "comments" : "",
       "componentType" : "PROCESSOR",
@@ -476,10 +476,10 @@
       },
       "properties" : {
         "Compression Enabled" : "false",
-        "Schema" : "PUBLIC",
+        "Schema" : "#{Schema}",
         "Snowflake Connection Service" : "7bed4745-dac7-3d6b-aff8-e59bf9aa1ae6",
-        "Database" : "HISTORICAL_QUOTES_DEMO",
-        "Stage" : "EARNINGS_REPORTS_STAGE",
+        "Database" : "#{Database}",
+        "Stage" : "#{Stage}",
         "File Name" : "${filename}",
         "Internal Stage Type" : "named"
       },
@@ -564,7 +564,7 @@
       "bundle" : {
         "artifact" : "nifi-standard-nar",
         "group" : "org.apache.nifi",
-        "version" : "2025.10.2.19"
+        "version" : "2025.12.3.16"
       },
       "comments" : "",
       "componentType" : "PROCESSOR",
@@ -581,15 +581,14 @@
       },
       "properties" : {
         "Minimum File Age" : "0 sec",
-        "et-initial-listing-target" : "all",
+        "Entity Tracking Initial Listing Target" : "all",
         "Ignore Dotted Files" : "true",
         "Port" : "22",
-        "et-time-window" : "3 hours",
         "Connection Timeout" : "30 sec",
-        "listing-strategy" : "timestamps",
-        "follow-symlink" : "false",
+        "Follow Symbolic Links" : "false",
         "Minimum File Size" : "0 B",
         "Search Recursively" : "true",
+        "Entity Tracking Time Window" : "3 hours",
         "Strict Host Key Checking" : "false",
         "File Filter Regex" : "^(?i).+pdf$",
         "Hostname" : "#{Hostname}",
@@ -598,9 +597,10 @@
         "Send Keep Alive On Timeout" : "true",
         "Data Timeout" : "30 sec",
         "Private Key Path" : "#{Private Key}",
+        "Target System Timestamp Precision" : "auto-detect",
         "Username" : "#{Username}",
-        "target-system-timestamp-precision" : "auto-detect",
-        "Algorithm Negotiation" : "DEFAULT"
+        "Algorithm Negotiation" : "DEFAULT",
+        "Listing Strategy" : "timestamps"
       },
       "propertyDescriptors" : {
         "Minimum File Age" : {
@@ -610,11 +610,11 @@
           "name" : "Minimum File Age",
           "sensitive" : false
         },
-        "et-initial-listing-target" : {
+        "Entity Tracking Initial Listing Target" : {
           "displayName" : "Entity Tracking Initial Listing Target",
           "dynamic" : false,
           "identifiesControllerService" : false,
-          "name" : "et-initial-listing-target",
+          "name" : "Entity Tracking Initial Listing Target",
           "sensitive" : false
         },
         "Ignore Dotted Files" : {
@@ -624,32 +624,18 @@
           "name" : "Ignore Dotted Files",
           "sensitive" : false
         },
+        "Entity Tracking State Cache" : {
+          "displayName" : "Entity Tracking State Cache",
+          "dynamic" : false,
+          "identifiesControllerService" : true,
+          "name" : "Entity Tracking State Cache",
+          "sensitive" : false
+        },
         "Port" : {
           "displayName" : "Port",
           "dynamic" : false,
           "identifiesControllerService" : false,
           "name" : "Port",
-          "sensitive" : false
-        },
-        "record-writer" : {
-          "displayName" : "Record Writer",
-          "dynamic" : false,
-          "identifiesControllerService" : true,
-          "name" : "record-writer",
-          "sensitive" : false
-        },
-        "proxy-configuration-service" : {
-          "displayName" : "Proxy Configuration Service",
-          "dynamic" : false,
-          "identifiesControllerService" : true,
-          "name" : "proxy-configuration-service",
-          "sensitive" : false
-        },
-        "et-time-window" : {
-          "displayName" : "Entity Tracking Time Window",
-          "dynamic" : false,
-          "identifiesControllerService" : false,
-          "name" : "et-time-window",
           "sensitive" : false
         },
         "Ciphers Allowed" : {
@@ -666,11 +652,25 @@
           "name" : "Private Key Passphrase",
           "sensitive" : true
         },
+        "Proxy Configuration Service" : {
+          "displayName" : "Proxy Configuration Service",
+          "dynamic" : false,
+          "identifiesControllerService" : true,
+          "name" : "Proxy Configuration Service",
+          "sensitive" : false
+        },
         "Connection Timeout" : {
           "displayName" : "Connection Timeout",
           "dynamic" : false,
           "identifiesControllerService" : false,
           "name" : "Connection Timeout",
+          "sensitive" : false
+        },
+        "Follow Symbolic Links" : {
+          "displayName" : "Follow Symbolic Links",
+          "dynamic" : false,
+          "identifiesControllerService" : false,
+          "name" : "Follow Symbolic Links",
           "sensitive" : false
         },
         "Path Filter Regex" : {
@@ -680,18 +680,11 @@
           "name" : "Path Filter Regex",
           "sensitive" : false
         },
-        "listing-strategy" : {
-          "displayName" : "Listing Strategy",
+        "Record Writer" : {
+          "displayName" : "Record Writer",
           "dynamic" : false,
-          "identifiesControllerService" : false,
-          "name" : "listing-strategy",
-          "sensitive" : false
-        },
-        "follow-symlink" : {
-          "displayName" : "Follow symlink",
-          "dynamic" : false,
-          "identifiesControllerService" : false,
-          "name" : "follow-symlink",
+          "identifiesControllerService" : true,
+          "name" : "Record Writer",
           "sensitive" : false
         },
         "Minimum File Size" : {
@@ -706,6 +699,13 @@
           "dynamic" : false,
           "identifiesControllerService" : false,
           "name" : "Search Recursively",
+          "sensitive" : false
+        },
+        "Entity Tracking Time Window" : {
+          "displayName" : "Entity Tracking Time Window",
+          "dynamic" : false,
+          "identifiesControllerService" : false,
+          "name" : "Entity Tracking Time Window",
           "sensitive" : false
         },
         "Strict Host Key Checking" : {
@@ -807,18 +807,18 @@
           },
           "sensitive" : false
         },
+        "Target System Timestamp Precision" : {
+          "displayName" : "Target System Timestamp Precision",
+          "dynamic" : false,
+          "identifiesControllerService" : false,
+          "name" : "Target System Timestamp Precision",
+          "sensitive" : false
+        },
         "Username" : {
           "displayName" : "Username",
           "dynamic" : false,
           "identifiesControllerService" : false,
           "name" : "Username",
-          "sensitive" : false
-        },
-        "target-system-timestamp-precision" : {
-          "displayName" : "Target System Timestamp Precision",
-          "dynamic" : false,
-          "identifiesControllerService" : false,
-          "name" : "target-system-timestamp-precision",
           "sensitive" : false
         },
         "Algorithm Negotiation" : {
@@ -835,11 +835,11 @@
           "name" : "Key Exchange Algorithms Allowed",
           "sensitive" : false
         },
-        "et-state-cache" : {
-          "displayName" : "Entity Tracking State Cache",
+        "Listing Strategy" : {
+          "displayName" : "Listing Strategy",
           "dynamic" : false,
-          "identifiesControllerService" : true,
-          "name" : "et-state-cache",
+          "identifiesControllerService" : false,
+          "name" : "Listing Strategy",
           "sensitive" : false
         },
         "Key Algorithms Allowed" : {
@@ -873,22 +873,40 @@
       "inheritedParameterContexts" : [ ],
       "name" : "AWS TF SFTP",
       "parameters" : [ {
+        "description" : "",
+        "name" : "Database",
+        "provided" : false,
+        "sensitive" : false,
+        "value" : "NASDAQ_DEMO"
+      }, {
         "description" : "The fully qualified hostname or IP address of the remote system",
         "name" : "Hostname",
         "provided" : false,
         "sensitive" : false,
-        "value" : "s-433c2e1e355b40ed8.server.transfer.eu-west-2.amazonaws.com"
+        "value" : "s-fcfbb192fbbd46838.server.transfer.eu-west-2.amazonaws.com"
       }, {
         "description" : "",
         "name" : "Private Key",
         "provided" : false,
         "sensitive" : false
       }, {
+        "description" : "",
+        "name" : "Schema",
+        "provided" : false,
+        "sensitive" : false,
+        "value" : "PUBLIC"
+      }, {
+        "description" : "",
+        "name" : "Stage",
+        "provided" : false,
+        "sensitive" : false,
+        "value" : "EARNINGS_REPORTS_STAGE"
+      }, {
         "description" : "Username",
         "name" : "Username",
         "provided" : false,
         "sensitive" : false,
-        "value" : "esten-sb1"
+        "value" : "openflow-user"
       } ]
     }
   },
@@ -896,6 +914,6 @@
   "snapshotMetadata" : {
     "author" : "JKINLEY",
     "flowIdentifier" : "nasdaq-demo-sftp",
-    "timestamp" : 1764348340197
+    "timestamp" : 1764875685130
   }
 }
