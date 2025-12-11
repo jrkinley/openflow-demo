@@ -217,7 +217,7 @@
     }, {
       "autoTerminatedRelationships" : [ ],
       "backoffMechanism" : "PENALIZE_FLOWFILE",
-      "bulletinLevel" : "ERROR",
+      "bulletinLevel" : "DEBUG",
       "bundle" : {
         "artifact" : "runtime-record-generation-nar",
         "group" : "com.snowflake.openflow.runtime",
@@ -345,7 +345,7 @@
       "inheritedParameterContexts" : [ ],
       "name" : "openflow-aws-secrets-demo",
       "parameterGroupName" : "openflow-aws-secrets-demo",
-      "parameterProvider" : "df519c47-019a-1000-ffff-ffffaa77f683",
+      "parameterProvider" : "6e0df316-ea82-306b-88bf-f56ef1928a68",
       "parameters" : [ {
         "name" : "password-from-aws",
         "provided" : true,
@@ -373,13 +373,13 @@
     }
   },
   "parameterProviders" : {
-    "df519c47-019a-1000-ffff-ffffaa77f683" : {
+    "6e0df316-ea82-306b-88bf-f56ef1928a68" : {
       "bundle" : {
         "artifact" : "nifi-aws-nar",
         "group" : "org.apache.nifi",
         "version" : "2025.11.20.19"
       },
-      "identifier" : "df519c47-019a-1000-ffff-ffffaa77f683",
+      "identifier" : "6e0df316-ea82-306b-88bf-f56ef1928a68",
       "name" : "AwsSecretsManagerParameterProvider",
       "type" : "org.apache.nifi.parameter.aws.AwsSecretsManagerParameterProvider"
     }
@@ -387,6 +387,6 @@
   "snapshotMetadata" : {
     "author" : "JKINLEY",
     "flowIdentifier" : "example",
-    "timestamp" : 1765357293105
+    "timestamp" : 1765445652718
   }
 }
