@@ -13,7 +13,10 @@ This Terraform module creates a PostgreSQL RDS instance configured for Change Da
 ### 1. Set Database Password
 
 ```bash
-# Set the password as an environment variable (required)
+# Generate a secure password (macOS/Linux)
+export TF_VAR_db_password=$(openssl rand -base64 10)
+
+# Or set your own password (avoid: / @ " and spaces)
 export TF_VAR_db_password="your-secure-password"
 ```
 
