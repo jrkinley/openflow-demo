@@ -125,6 +125,7 @@
     "maxConcurrentTasks" : 1,
     "name" : "Versioning (Dev)",
     "outputPorts" : [ ],
+    "parameterContextName" : "Versioning Context",
     "position" : {
       "x" : 0.0,
       "y" : 0.0
@@ -216,7 +217,7 @@
     }, {
       "autoTerminatedRelationships" : [ ],
       "backoffMechanism" : "PENALIZE_FLOWFILE",
-      "bulletinLevel" : "DEBUG",
+      "bulletinLevel" : "ERROR",
       "bundle" : {
         "artifact" : "runtime-record-generation-nar",
         "group" : "com.snowflake.openflow.runtime",
@@ -238,7 +239,7 @@
       "properties" : {
         "Batch Size" : "10",
         "Output Structure" : "JSON_ARRAY",
-        "JSON Schema" : "{\n    \"$schema\": \"https://json-schema.org/draft/2020-12/schema\",\n    \"title\": \"HistoricalQuote\",\n    \"description\": \"Historical stock prices and volumes\",\n    \"type\": \"object\",\n    \"properties\": {\n        \"symbol\": {\n            \"type\": \"string\",\n            \"description\": \"Stock ticker symbol (e.g., AAPL, MSFT)\",\n            \"pattern\": \"^[A-Z]{1,5}$\"\n        },\n        \"date\": {\n            \"type\": \"string\",\n            \"description\": \"Trading date in MM/DD/YYYY format\",\n            \"pattern\": \"^(0[1-9]|1[0-2])\\\\/(0[1-9]|[12][0-9]|3[01])\\\\/\\\\d{4}$\"\n        },\n        \"close_last\": {\n            \"type\": \"string\",\n            \"description\": \"Closing price (string format with $ prefix)\",\n            \"pattern\": \"^\\\\$\\\\d{1,4}\\\\.\\\\d{2}$\"\n        },\n        \"volume\": {\n            \"type\": \"integer\",\n            \"description\": \"Trading volume (number of shares traded)\"\n        },\n        \"open\": {\n            \"type\": \"string\",\n            \"description\": \"Opening price (string format with $ prefix)\",\n            \"pattern\": \"^\\\\$\\\\d{1,4}\\\\.\\\\d{2}$\"\n        },\n        \"high\": {\n            \"type\": \"string\",\n            \"description\": \"Highest price (string format with $ prefix)\",\n            \"pattern\": \"^\\\\$\\\\d{1,4}\\\\.\\\\d{2}$\"\n        },\n        \"low\": {\n            \"type\": \"string\",\n            \"description\": \"Lowest price (string format with $ prefix)\",\n            \"pattern\": \"^\\\\$\\\\d{1,4}\\\\.\\\\d{2}$\"\n        }\n    },\n    \"required\": [\n        \"symbol\",\n        \"date\",\n        \"close_last\",\n        \"volume\",\n        \"open\",\n        \"high\",\n        \"low\"\n    ]\n}"
+        "JSON Schema" : "#{JSON Schema}"
       },
       "propertyDescriptors" : {
         "Batch Size" : {
@@ -338,11 +339,54 @@
   },
   "flowEncodingVersion" : "1.0",
   "latest" : false,
-  "parameterContexts" : { },
-  "parameterProviders" : { },
+  "parameterContexts" : {
+    "openflow-aws-secrets-demo" : {
+      "componentType" : "PARAMETER_CONTEXT",
+      "inheritedParameterContexts" : [ ],
+      "name" : "openflow-aws-secrets-demo",
+      "parameterGroupName" : "openflow-aws-secrets-demo",
+      "parameterProvider" : "6e0df316-ea82-306b-88bf-f56ef1928a68",
+      "parameters" : [ {
+        "name" : "password-from-aws",
+        "provided" : true,
+        "sensitive" : true
+      }, {
+        "name" : "username-from-aws",
+        "provided" : true,
+        "sensitive" : false,
+        "value" : "jkinley"
+      } ],
+      "synchronized" : true
+    },
+    "Versioning Context" : {
+      "componentType" : "PARAMETER_CONTEXT",
+      "description" : "Example parameter context",
+      "inheritedParameterContexts" : [ "openflow-aws-secrets-demo" ],
+      "name" : "Versioning Context",
+      "parameters" : [ {
+        "description" : "Json 2020-12 schema for GenerateJSON processor.",
+        "name" : "JSON Schema",
+        "provided" : false,
+        "sensitive" : false,
+        "value" : "{     \"$schema\": \"https://json-schema.org/draft/2020-12/schema\",     \"title\": \"HistoricalQuote\",     \"description\": \"Historical stock prices and volumes\",     \"type\": \"object\",     \"properties\": {         \"symbol\": {             \"type\": \"string\",             \"description\": \"Stock ticker symbol (e.g., AAPL, MSFT)\",             \"pattern\": \"^[A-Z]{1,5}$\"         },         \"date\": {             \"type\": \"string\",             \"description\": \"Trading date in MM/DD/YYYY format\",             \"pattern\": \"^(0[1-9]|1[0-2])\\\\/(0[1-9]|[12][0-9]|3[01])\\\\/\\\\d{4}$\"         },         \"close_last\": {             \"type\": \"string\",             \"description\": \"Closing price (string format with $ prefix)\",             \"pattern\": \"^\\\\$\\\\d{1,4}\\\\.\\\\d{2}$\"         },         \"volume\": {             \"type\": \"integer\",             \"description\": \"Trading volume (number of shares traded)\"         },         \"open\": {             \"type\": \"string\",             \"description\": \"Opening price (string format with $ prefix)\",             \"pattern\": \"^\\\\$\\\\d{1,4}\\\\.\\\\d{2}$\"         },         \"high\": {             \"type\": \"string\",             \"description\": \"Highest price (string format with $ prefix)\",             \"pattern\": \"^\\\\$\\\\d{1,4}\\\\.\\\\d{2}$\"         },         \"low\": {             \"type\": \"string\",             \"description\": \"Lowest price (string format with $ prefix)\",             \"pattern\": \"^\\\\$\\\\d{1,4}\\\\.\\\\d{2}$\"         }     },     \"required\": [         \"symbol\",         \"date\",         \"close_last\",         \"volume\",         \"open\",         \"high\",         \"low\"     ] }"
+      } ]
+    }
+  },
+  "parameterProviders" : {
+    "6e0df316-ea82-306b-88bf-f56ef1928a68" : {
+      "bundle" : {
+        "artifact" : "nifi-aws-nar",
+        "group" : "org.apache.nifi",
+        "version" : "2025.11.20.19"
+      },
+      "identifier" : "6e0df316-ea82-306b-88bf-f56ef1928a68",
+      "name" : "AwsSecretsManagerParameterProvider",
+      "type" : "org.apache.nifi.parameter.aws.AwsSecretsManagerParameterProvider"
+    }
+  },
   "snapshotMetadata" : {
     "author" : "JKINLEY",
     "flowIdentifier" : "example",
-    "timestamp" : 1764672438363
+    "timestamp" : 1765456796453
   }
 }
