@@ -1,0 +1,18 @@
+{
+    "type": "object",
+    "properties": {
+        "id": {
+            "type": "string"
+        },
+        "status": {
+            "type": "string",
+            "enum": [
+                "pending",
+                "shipped",
+                "in_transit",
+                "delivered",
+                "exception"
+            ]
+        }
+    }
+}
