@@ -1,0 +1,11 @@
+{
+  "flow" : {
+    "createdTimestamp" : 1768476374670,
+    "description" : "The IMF DataMapper API can be used to retrieve time series as used in the DataMapper. Endpoints are available to get lists of indicators, countries, regions and analytical groups used in these time series.",
+    "identifier" : "imf-datamapper",
+    "lastModifiedTimestamp" : 1768476374670,
+    "name" : "imf-datamapper",
+    "versionCount" : 0
+  },
+  "latest" : false
+}
