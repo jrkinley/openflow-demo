@@ -104,6 +104,20 @@ The RDS instance is automatically configured with:
 - **Demo Schema**: `nasdaq` schema with stock market data
 - **WAL Retention Limit**: 50GB per replication slot to prevent storage issues
 
+## Managing Publications
+
+Publications define which tables are available for CDC. The `openflow` publication is created by default.
+
+```sql
+-- List all publications and their tables
+SELECT pubname, schemaname, tablename FROM pg_publication_tables;
+
+-- Create a new publication for specific tables
+CREATE PUBLICATION openflow_demo_1 FOR TABLE nasdaq.stock_quotes;
+CREATE PUBLICATION openflow_demo_2 FOR TABLE nasdaq.stock_quotes;
+CREATE PUBLICATION openflow_demo_3 FOR TABLE nasdaq.stock_quotes;
+```
+
 ## Managing Replication Slots
 
 Replication slots can accumulate WAL files and fill up storage if not actively consumed. Here's how to manage them:
