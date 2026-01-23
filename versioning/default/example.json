@@ -138,7 +138,7 @@
       "bundle" : {
         "artifact" : "nifi-standard-nar",
         "group" : "org.apache.nifi",
-        "version" : "2025.11.20.19"
+        "version" : "2025.12.11.21"
       },
       "comments" : "",
       "componentType" : "PROCESSOR",
@@ -217,11 +217,11 @@
     }, {
       "autoTerminatedRelationships" : [ ],
       "backoffMechanism" : "PENALIZE_FLOWFILE",
-      "bulletinLevel" : "ERROR",
+      "bulletinLevel" : "DEBUG",
       "bundle" : {
         "artifact" : "runtime-record-generation-nar",
         "group" : "com.snowflake.openflow.runtime",
-        "version" : "2025.11.20.19"
+        "version" : "2025.12.11.21"
       },
       "comments" : "",
       "componentType" : "PROCESSOR",
@@ -280,7 +280,7 @@
       "bundle" : {
         "artifact" : "nifi-standard-nar",
         "group" : "org.apache.nifi",
-        "version" : "2025.11.20.19"
+        "version" : "2025.12.11.21"
       },
       "comments" : "",
       "componentType" : "PROCESSOR",
@@ -353,8 +353,7 @@
       }, {
         "name" : "username-from-aws",
         "provided" : true,
-        "sensitive" : false,
-        "value" : "jkinley"
+        "sensitive" : false
       } ],
       "synchronized" : true
     },
@@ -377,7 +376,7 @@
       "bundle" : {
         "artifact" : "nifi-aws-nar",
         "group" : "org.apache.nifi",
-        "version" : "2025.11.20.19"
+        "version" : "2025.12.11.21"
       },
       "identifier" : "6e0df316-ea82-306b-88bf-f56ef1928a68",
       "name" : "AwsSecretsManagerParameterProvider",
@@ -387,6 +386,6 @@
   "snapshotMetadata" : {
     "author" : "JKINLEY",
     "flowIdentifier" : "example",
-    "timestamp" : 1765456796453
+    "timestamp" : 1769186065208
   }
 }
