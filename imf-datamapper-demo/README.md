@@ -21,17 +21,43 @@ The [IMF DataMapper API](https://www.imf.org/external/datamapper/api/v1/) provid
 
 Data is available for **190+ countries** with historical values and IMF projections.
 
-## Target Table
+## Snowflake Setup
 
-Data is loaded into the following Snowflake table:
+Before deploying the Openflow flow, create the target table and grant the necessary permissions to the Openflow runtime role.
 
-| Column | Type | Description |
-|--------|------|-------------|
-| `INDICATOR` | VARCHAR | WEO indicator code (e.g., NGDPDPC, PCPIPCH) |
-| `COUNTRY_CODE` | VARCHAR | ISO country code |
-| `YEAR` | INTEGER | Data year |
-| `VALUE` | FLOAT | Indicator value |
-| `INGESTION_TIMESTAMP` | TIMESTAMP_NTZ | When the data was loaded |
+### Create the database and table
+
+```sql
+CREATE DATABASE IF NOT EXISTS API_DEMO;
+USE DATABASE API_DEMO;
+
+CREATE OR REPLACE TABLE API_DEMO.PUBLIC.IMF_DATAMAPPER_INDICATORS (
+    INDICATOR VARCHAR,
+    COUNTRY_CODE VARCHAR,
+    YEAR NUMBER(38,0),
+    VALUE FLOAT,
+    INGESTION_TIMESTAMP TIMESTAMP_NTZ(9)
+);
+```
+
+### Grant permissions to the Openflow runtime role
+
+The `OPENFLOW_RUNTIME_ROLE` requires USAGE on the database and schema, CREATE TABLE on the schema, and read/write privileges on the table:
+
+```sql
+-- Database grants
+GRANT USAGE ON DATABASE API_DEMO TO ROLE OPENFLOW_RUNTIME_ROLE;
+GRANT CREATE SCHEMA ON DATABASE API_DEMO TO ROLE OPENFLOW_RUNTIME_ROLE;
+
+-- Schema grants
+GRANT USAGE ON SCHEMA API_DEMO.PUBLIC TO ROLE OPENFLOW_RUNTIME_ROLE;
+GRANT CREATE TABLE ON SCHEMA API_DEMO.PUBLIC TO ROLE OPENFLOW_RUNTIME_ROLE;
+
+-- Table grants
+GRANT SELECT, INSERT, UPDATE, DELETE, TRUNCATE, REFERENCES, REBUILD, EVOLVE SCHEMA, APPLYBUDGET
+    ON TABLE API_DEMO.PUBLIC.IMF_DATAMAPPER_INDICATORS
+    TO ROLE OPENFLOW_RUNTIME_ROLE;
+```
 
 ## How It Works
 
