@@ -40,6 +40,21 @@ CREATE OR REPLACE TABLE API_DEMO.PUBLIC.IMF_DATAMAPPER_INDICATORS (
 );
 ```
 
+### Create external access integration
+
+```sql
+CREATE OR REPLACE NETWORK RULE IMF_API_NETWORK_RULE
+    MODE = EGRESS
+    TYPE = HOST_PORT
+    VALUE_LIST = ('www.imf.org');
+
+CREATE OR REPLACE EXTERNAL ACCESS INTEGRATION IMF_API_ACCESS
+    ALLOWED_NETWORK_RULES = (IMF_API_NETWORK_RULE)
+    ENABLED = TRUE;
+
+GRANT USAGE ON INTEGRATION IMF_API_ACCESS TO ROLE "OPENFLOW_RUNTIME_ROLE";
+```
+
 ### Grant permissions to the Openflow runtime role
 
 The `OPENFLOW_RUNTIME_ROLE` requires USAGE on the database and schema, CREATE TABLE on the schema, and read/write privileges on the table:
