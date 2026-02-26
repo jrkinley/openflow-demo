@@ -19,36 +19,6 @@
       "destination" : {
         "comments" : "",
         "groupId" : "flow-contents-group",
-        "id" : "dc4dfed4-1a5b-3af8-b6ef-aaf503ccd964",
-        "name" : "Funnel",
-        "type" : "FUNNEL"
-      },
-      "flowFileExpiration" : "0 sec",
-      "groupIdentifier" : "flow-contents-group",
-      "identifier" : "2eafbe39-f68c-3a8b-a40e-6d52e4278643",
-      "labelIndex" : 0,
-      "loadBalanceCompression" : "DO_NOT_COMPRESS",
-      "loadBalanceStrategy" : "DO_NOT_LOAD_BALANCE",
-      "name" : "",
-      "partitioningAttribute" : "",
-      "prioritizers" : [ ],
-      "selectedRelationships" : [ "failure" ],
-      "source" : {
-        "comments" : "",
-        "groupId" : "flow-contents-group",
-        "id" : "f84d7f31-02f4-3153-ffff-ffffccca41c8",
-        "name" : "Write Indicator",
-        "type" : "PROCESSOR"
-      },
-      "zIndex" : 9
-    }, {
-      "backPressureDataSizeThreshold" : "1 GB",
-      "backPressureObjectThreshold" : 10000,
-      "bends" : [ ],
-      "componentType" : "CONNECTION",
-      "destination" : {
-        "comments" : "",
-        "groupId" : "flow-contents-group",
         "id" : "050cc097-05a0-3e8f-951e-e521165b17c5",
         "name" : "IMF WEO",
         "type" : "PROCESSOR"
@@ -251,36 +221,6 @@
         "type" : "PROCESSOR"
       },
       "zIndex" : 7
-    }, {
-      "backPressureDataSizeThreshold" : "1 GB",
-      "backPressureObjectThreshold" : 10000,
-      "bends" : [ ],
-      "componentType" : "CONNECTION",
-      "destination" : {
-        "comments" : "",
-        "groupId" : "flow-contents-group",
-        "id" : "5111802a-3865-386a-93d0-53db805b062c",
-        "name" : "Funnel",
-        "type" : "FUNNEL"
-      },
-      "flowFileExpiration" : "0 sec",
-      "groupIdentifier" : "flow-contents-group",
-      "identifier" : "ba2c0c55-c44e-37a9-abef-87511ee169d5",
-      "labelIndex" : 0,
-      "loadBalanceCompression" : "DO_NOT_COMPRESS",
-      "loadBalanceStrategy" : "DO_NOT_LOAD_BALANCE",
-      "name" : "",
-      "partitioningAttribute" : "",
-      "prioritizers" : [ ],
-      "selectedRelationships" : [ "success" ],
-      "source" : {
-        "comments" : "",
-        "groupId" : "flow-contents-group",
-        "id" : "f84d7f31-02f4-3153-ffff-ffffccca41c8",
-        "name" : "Write Indicator",
-        "type" : "PROCESSOR"
-      },
-      "zIndex" : 10
     }, {
       "backPressureDataSizeThreshold" : "1 GB",
       "backPressureObjectThreshold" : 10000,
@@ -607,30 +547,13 @@
     "externalControllerServiceReferences" : { },
     "flowFileConcurrency" : "UNBOUNDED",
     "flowFileOutboundPolicy" : "STREAM_WHEN_AVAILABLE",
-    "funnels" : [ {
-      "componentType" : "FUNNEL",
-      "groupIdentifier" : "flow-contents-group",
-      "identifier" : "5111802a-3865-386a-93d0-53db805b062c",
-      "position" : {
-        "x" : 808.0,
-        "y" : 1184.0
-      }
-    }, {
-      "componentType" : "FUNNEL",
-      "groupIdentifier" : "flow-contents-group",
-      "identifier" : "dc4dfed4-1a5b-3af8-b6ef-aaf503ccd964",
-      "position" : {
-        "x" : 336.0,
-        "y" : 1184.0
-      }
-    } ],
+    "funnels" : [ ],
     "identifier" : "flow-contents-group",
     "inputPorts" : [ ],
     "labels" : [ ],
     "maxConcurrentTasks" : 1,
     "name" : "IMF WEO",
     "outputPorts" : [ ],
-    "parameterContextName" : "IMF DataMapper Parameters",
     "position" : {
       "x" : 0.0,
       "y" : 0.0
@@ -1714,7 +1637,7 @@
       "type" : "org.apache.nifi.processors.groovyx.ExecuteGroovyScript",
       "yieldDuration" : "1 sec"
     }, {
-      "autoTerminatedRelationships" : [ ],
+      "autoTerminatedRelationships" : [ "failure", "success" ],
       "backoffMechanism" : "PENALIZE_FLOWFILE",
       "bulletinLevel" : "WARN",
       "bundle" : {
@@ -1915,25 +1838,11 @@
   },
   "flowEncodingVersion" : "1.0",
   "latest" : false,
-  "parameterContexts" : {
-    "IMF DataMapper Parameters" : {
-      "componentType" : "PARAMETER_CONTEXT",
-      "description" : "The IMF DataMapper API can be used to retrieve time series as used in the DataMapper. Endpoints are available to get lists of indicators, countries, regions and analytical groups used in these time series.",
-      "inheritedParameterContexts" : [ ],
-      "name" : "IMF DataMapper Parameters",
-      "parameters" : [ {
-        "description" : "",
-        "name" : "imf_base_endpoint",
-        "provided" : false,
-        "sensitive" : false,
-        "value" : "https://www.imf.org/external/datamapper/api/v1"
-      } ]
-    }
-  },
+  "parameterContexts" : { },
   "parameterProviders" : { },
   "snapshotMetadata" : {
     "author" : "JKINLEY",
     "flowIdentifier" : "imf-weo",
-    "timestamp" : 1771256573021
+    "timestamp" : 1772129550758
   }
 }
