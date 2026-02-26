@@ -80,32 +80,48 @@ GRANT SELECT, INSERT, UPDATE, DELETE, TRUNCATE, REFERENCES, REBUILD, EVOLVE SCHE
 2. The response is parsed and flattened into rows of `(indicator, country_code, year, value)`.
 3. The data is written to a Snowflake table using the Openflow Snowpipe Streaming processor.
 
-## Deploying with Cortex Code CLI
+## Getting Started with Cortex Code CLI
 
-[Cortex Code](https://docs.snowflake.com/en/user-guide/snowflake-cortex/cortex-code) is Snowflake's AI-powered CLI that can deploy and manage Openflow flows using natural language. It uses the [NiPyApi](https://nipyapi.readthedocs.io/) Python library to interact with the NiFi REST API on your Openflow runtime.
+The [Cortex Code CLI](https://docs.snowflake.com/en/user-guide/cortex-code/cortex-code-cli) is required to deploy this demo. The CLI has built-in Openflow skills that know how to deploy flows, manage the Openflow runtime, and interact with the NiFi REST API via [NiPyApi](https://nipyapi.readthedocs.io/).
 
-Cortex Code requires a local Python environment with the [NiPyApi](https://nipyapi.readthedocs.io/) library installed. This project includes a uv environment with NiPyApi pre-configured:
+### Prerequisites
+
+1. Install the Cortex Code CLI following the [installation guide](https://docs.snowflake.com/en/user-guide/cortex-code/cortex-code-cli).
+2. An Openflow runtime must already be provisioned and active in your Snowflake account.
+3. Complete the [Snowflake Setup](#snowflake-setup) steps above to create the database, table, external access integration, and role grants.
+4. This project includes a uv environment with NiPyApi pre-configured. Install the dependencies:
 
 ```bash
 uv sync
 ```
 
-Install Cortex Code following the [installation guide](https://docs.snowflake.com/en/user-guide/snowflake-cortex/cortex-code/install), then use a prompt like this to deploy the flow:
+### Deploy and run
+
+Open the Cortex Code CLI from this project directory and use the following prompt to validate your setup and deploy the flow:
 
 ```
-First, query the API_DEMO.PUBLIC.IMF_DATAMAPPER_INDICATORS table to get
-the current count of distinct indicators, distinct countries, and the
-latest ingestion timestamp. Then deploy the imf-weo.json flow to my
-Openflow runtime, start it, and wait for it to complete. Once finished,
-query the table again and compare the number of indicators and countries
-against the original counts — they may differ if the IMF source data
-has changed. Validate that the ingestion timestamp has been updated so
-we know the data is fresh. Stop and delete the flow instance when done.
+Deploy and run the IMF DataMapper demo:
+
+1. Read your Openflow skills so you know how to interact with Openflow.
+2. Verify that my Openflow runtime exists and is active.
+3. Check that the following all exist: the API_DEMO database, the 
+   API_DEMO.PUBLIC.IMF_DATAMAPPER_INDICATORS table, and the 
+   IMF_API_ACCESS external access integration. If anything is missing, 
+   follow the Snowflake Setup section in the README to create it. If you 
+   are unable to complete any prerequisite, state what failed and stop.
+4. Use the project's Python virtual environment (.venv) for all nipyapi 
+   operations via Python, not the CLI.
+5. Deploy the imf-weo.json flow to my Openflow runtime and start it.
+6. Poll every 10 seconds until queued_flowfiles == 0 and 
+   active_threads == 0, then stop the flow.
+7. Verify the data loaded by querying the table to list the top 10 
+   countries by GDP per capita for the current year.
+8. Delete the flow instance when done.
 ```
 
 ### Documentation
 
-- [Cortex Code](https://docs.snowflake.com/en/user-guide/snowflake-cortex/cortex-code)
+- [Cortex Code CLI](https://docs.snowflake.com/en/user-guide/cortex-code/cortex-code-cli)
 - [Openflow](https://docs.snowflake.com/en/user-guide/data-integration/openflow)
 - [NiPyApi](https://nipyapi.readthedocs.io/)
 - [Apache NiFi REST API](https://nifi.apache.org/docs/nifi-docs/rest-api/index.html)
