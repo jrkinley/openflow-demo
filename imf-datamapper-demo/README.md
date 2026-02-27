@@ -102,20 +102,25 @@ Open the Cortex Code CLI from this project directory and use the following promp
 ```
 Deploy and run the IMF DataMapper demo:
 
-1. Read your Openflow skills so you know how to interact with Openflow.
+1. Read your Openflow skills so you know how to interact
+   with flows and the Openflow runtime.
 2. Verify that my Openflow runtime exists and is active.
-3. Check that the following all exist: the API_DEMO database, the 
-   API_DEMO.PUBLIC.IMF_DATAMAPPER_INDICATORS table, and the 
-   IMF_API_ACCESS external access integration. If anything is missing, 
-   follow the Snowflake Setup section in the README to create it. If you 
-   are unable to complete any prerequisite, state what failed and stop.
-4. Use the project's Python virtual environment (.venv) for all nipyapi 
-   operations via Python, not the CLI.
-5. Deploy the imf-weo.json flow to my Openflow runtime and start it.
-6. Poll every 10 seconds until queued_flowfiles == 0 and 
-   active_threads == 0, then stop the flow.
-7. Verify the data loaded by querying the table to list the top 10 
-   countries by GDP per capita for the current year.
+3. Check that the following all exist: the API_DEMO
+   database, the IMF_DATAMAPPER_INDICATORS table, and
+   the IMF_API_ACCESS external access integration. If
+   anything is missing, follow the Snowflake Setup section
+   in the README to create it. If you are unable to
+   complete any prerequisite, state what failed and stop.
+4. Use the project's Python virtual environment (.venv)
+   for all nipyapi operations via Python, not the CLI.
+5. Deploy the imf-weo.json flow to my Openflow runtime
+   and start it.
+6. Wait for the flow to finish. Poll every 10 seconds
+   and wait until the process group has processed data.
+   Only then stop the flow.
+7. Verify the data loaded by querying the table to list
+   the top 10 countries by GDP per capita for the
+   current year.
 8. Delete the flow instance when done.
 ```
 

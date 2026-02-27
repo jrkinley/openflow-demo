@@ -554,6 +554,7 @@
     "maxConcurrentTasks" : 1,
     "name" : "IMF WEO",
     "outputPorts" : [ ],
+    "parameterContextName" : "IMF DataMapper Parameters",
     "position" : {
       "x" : 0.0,
       "y" : 0.0
@@ -1838,7 +1839,21 @@
   },
   "flowEncodingVersion" : "1.0",
   "latest" : false,
-  "parameterContexts" : { },
+  "parameterContexts" : {
+    "IMF DataMapper Parameters" : {
+      "componentType" : "PARAMETER_CONTEXT",
+      "description" : "Parameters for the IMF DataMapper API flow.",
+      "inheritedParameterContexts" : [ ],
+      "name" : "IMF DataMapper Parameters",
+      "parameters" : [ {
+        "description" : "Base URL for the IMF DataMapper API.",
+        "name" : "imf_base_endpoint",
+        "provided" : false,
+        "sensitive" : false,
+        "value" : "https://www.imf.org/external/datamapper/api/v1"
+      } ]
+    }
+  },
   "parameterProviders" : { },
   "snapshotMetadata" : {
     "author" : "JKINLEY",
