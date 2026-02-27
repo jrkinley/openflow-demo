@@ -56,7 +56,6 @@ Create an rpk profile for your MSK cluster:
 CLUSTER_ARN=$(terraform output -raw msk_cluster_arn)
 BROKERS=$(aws kafka get-bootstrap-brokers --cluster-arn $CLUSTER_ARN \
   --query 'BootstrapBrokerStringPublicSaslScram' --output text)
-USERNAME=$(terraform output -raw kafka_username)
 PASSWORD=$(terraform output -raw kafka_password)
 
 # Create rpk profile
@@ -64,7 +63,7 @@ rpk profile create msk-demo \
   --set brokers=$BROKERS \
   --set tls.enabled=true \
   --set sasl.mechanism=SCRAM-SHA-512 \
-  --set user=$USERNAME \
+  --set user="kafka-user" \
   --set pass=$PASSWORD
 ```
 
