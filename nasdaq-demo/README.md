@@ -55,9 +55,9 @@ flowchart LR
 
     dt --> streamlit
 
-    style sources fill:#f9f0ff,stroke:#7b2d8e
-    style openflow fill:#e8f4fd,stroke:#1a73e8
-    style snowflake fill:#f0f7ff,stroke:#29b5e8
+    style sources fill:#FFEBD6,stroke:#FF9F36,color:#000000
+    style openflow fill:#CFDDE5,stroke:#11567F,color:#000000
+    style snowflake fill:#D4F0FA,stroke:#29B5E8,color:#000000
 ```
 
 > **Phase 2 choice**: Choose either the Kafka streaming path or the PostgreSQL CDC path based on your use case. Both deliver the same structured data into Snowflake.
