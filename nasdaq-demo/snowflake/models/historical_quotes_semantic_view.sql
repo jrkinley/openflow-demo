@@ -15,7 +15,7 @@ CREATE OR REPLACE SEMANTIC VIEW HISTORICAL_QUOTES_SEMANTIC_VIEW
     )
     DIMENSIONS (
         HISTORICAL_QUOTES_TYPED.SYMBOL AS SYMBOL
-            COMMENT = 'The stock ticker symbol (e.g. MSFT, TSLA).',
+            COMMENT = 'The stock ticker symbol (e.g. TSLA).',
         HISTORICAL_QUOTES_TYPED.VOLUME AS VOLUME
             COMMENT = 'The total number of shares traded on a given day.',
         HISTORICAL_QUOTES_TYPED.QUOTE_DATE AS QUOTE_DATE
@@ -27,7 +27,7 @@ CREATE OR REPLACE SEMANTIC VIEW HISTORICAL_QUOTES_SEMANTIC_VIEW
                 {
                     "name": "HISTORICAL_QUOTES_TYPED",
                     "dimensions": [
-                        {"name": "SYMBOL", "sample_values": ["MSFT", "TSLA"]},
+                        {"name": "SYMBOL", "sample_values": ["TSLA"]},
                         {"name": "VOLUME", "sample_values": ["27406500", "23024340", "18913700"]}
                     ],
                     "facts": [

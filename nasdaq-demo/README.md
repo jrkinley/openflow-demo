@@ -2,7 +2,7 @@
 
 A hands-on workshop demonstrating how to integrate structured and unstructured data sources into Snowflake using Openflow, build Cortex AI capabilities over that data, and deliver intelligent natural-language access through Snowflake Intelligence.
 
-The workshop uses a financial services scenario with NASDAQ historical stock quotes (structured data) and quarterly earnings reports (unstructured data) for Microsoft and Tesla.
+The workshop uses a financial services scenario with NASDAQ historical stock quotes (structured data) and quarterly earnings reports (unstructured data). The examples use Tesla (TSLA) throughout, but this can easily be replaced with stocks of your choice.
 
 ## Architecture
 
@@ -27,7 +27,7 @@ flowchart LR
         table["HISTORICAL_STOCK_QUOTES"]
         stage["EARNINGS_REPORTS_STAGE"]
         dt["Dynamic Table (typed & cleaned)"]
-        parse["AI_PARSE_DOCUMENT + Chunking"]
+        parse["Parsing + Chunking + Embeddings"]
         analyst["Cortex Analyst"]
         search["Cortex Search"]
         agent["Cortex Agent"]

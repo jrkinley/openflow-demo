@@ -171,7 +171,7 @@ snow sql -f snowflake/models/historical_quotes_semantic_view.sql
 **Checkpoint** -- test Cortex Analyst with a sample question:
 
 ```
-What was the average daily trading volume for MSFT in the last quarter?
+What was the average daily trading volume for TSLA in the last quarter?
 ```
 
 ## Notebooks

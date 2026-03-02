@@ -29,7 +29,7 @@ SERVER_ENDPOINT=$(cd "$TERRAFORM_DIR" && terraform output -raw server_endpoint)
 
 echo "Uploading reports from $SOURCE_DIR to $SERVER_ENDPOINT"
 
-# Upload each subdirectory (MSFT, TSLA) preserving folder structure
+# Upload each subdirectory (e.g. TSLA) preserving folder structure
 for dir in "$SOURCE_DIR"/*/; do
     if [ -d "$dir" ]; then
         FOLDER_NAME=$(basename "$dir")

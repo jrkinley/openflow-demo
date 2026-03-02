@@ -5,7 +5,7 @@
 | Tool | Install | Verify |
 |------|---------|--------|
 | [Cortex Code CLI](https://docs.snowflake.com/en/user-guide/cortex-code/cortex-code-cli) | `curl -LsS https://ai.snowflake.com/static/cc-scripts/install.sh \| sh` | `cortex --version` |
-| [Terraform](https://developer.hashicorp.com/terraform/install) | `brew install terraform` | `terraform --version` |
+| [Terraform](https://developer.hashicorp.com/terraform/install) | `brew tap hashicorp/tap && brew install hashicorp/tap/terraform` | `terraform --version` |
 | [AWS CLI](https://aws.amazon.com/cli/) | `brew install awscli` | `aws sts get-caller-identity` |
 | [Git](https://git-scm.com/) | `brew install git` | `git --version` |
 

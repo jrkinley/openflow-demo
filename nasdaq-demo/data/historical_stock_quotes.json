@@ -6,7 +6,7 @@
     "properties": {
         "symbol": {
             "type": "string",
-            "description": "Stock ticker symbol (e.g., AAPL, MSFT)",
+            "description": "Stock ticker symbol (e.g., TSLA, AAPL)",
             "pattern": "^[A-Z]{1,5}$"
         },
         "date": {

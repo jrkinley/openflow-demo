@@ -43,7 +43,7 @@ What was Tesla's highest closing price in 2025?
 ```
 
 ```
-Compare the average daily trading volume for MSFT and TSLA over the last 6 months.
+What was the average daily trading volume for TSLA over the last 6 months?
 ```
 
 **Unstructured data (Search):**
@@ -53,7 +53,7 @@ What were the key highlights from Tesla's Q3 2024 earnings report?
 ```
 
 ```
-What did Microsoft report about cloud revenue growth in their most recent quarter?
+What did Tesla report about vehicle delivery numbers in their most recent quarter?
 ```
 
 **Combined (both tools):**
@@ -64,8 +64,8 @@ earnings reports that explains this movement?
 ```
 
 ```
-How did Microsoft's stock price react around the time they reported record
-cloud revenue? What did the earnings report say about Azure growth?
+How did Tesla's stock price react around the time they reported record
+vehicle deliveries? What did the earnings report say about revenue growth?
 ```
 
 > **Cortex Code CLI**

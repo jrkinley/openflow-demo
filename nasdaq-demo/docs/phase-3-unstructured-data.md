@@ -18,7 +18,7 @@ For manual steps, see the "Adding Users" section in [terraform/sftp/README.md](.
 
 ## 3.2 Upload Earnings Reports to SFTP
 
-Upload the PDF earnings reports for MSFT and TSLA to the SFTP server:
+Upload the PDF earnings reports to the SFTP server:
 
 > **Cortex Code CLI**
 >
@@ -79,4 +79,4 @@ FROM DIRECTORY(@NASDAQ_DEMO.PUBLIC.EARNINGS_REPORTS_STAGE)
 ORDER BY RELATIVE_PATH;
 ```
 
-You should see 15 PDF files (8 for MSFT, 7 for TSLA).
+You should see the uploaded PDF files listed in the stage. The exact count depends on the stocks and quarters you chose -- for example, Tesla (TSLA) earnings reports from the `data/reports/` directory.
