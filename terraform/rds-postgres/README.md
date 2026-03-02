@@ -6,7 +6,7 @@ This Terraform module creates a PostgreSQL RDS instance configured for Change Da
 
 - **CDC Ready**: Configured with logical replication for Change Data Capture
 - **Flexible VPC Usage**: Create new VPC or use existing infrastructure
-- **Demo Database**: Includes setup scripts for NASDAQ stock market data
+- **CDC Ready Configuration**: Logical replication and publications pre-configured
 
 ## Quick Start
 
@@ -34,15 +34,7 @@ terraform init
 terraform apply -var-file="examples/existing-vpc.tfvars"
 ```
 
-### 3. Setup Demo Database
-
-```bash
-# Run the database setup script
-cd db-setup
-./setup.sh
-```
-
-### 4. Connect and Test
+### 3. Connect and Test
 
 ```bash
 # Get connection details
@@ -50,13 +42,6 @@ RDS_HOST=$(terraform output -raw rds_hostname)
 
 # Connect with psql
 psql -h $RDS_HOST -U postgres -d postgres
-
-# View demo data
-SELECT * FROM nasdaq.stock_quotes ORDER BY quote_date DESC LIMIT 10;
-
-# Test CDC
-UPDATE nasdaq.stock_quotes SET close_price=0.0 WHERE symbol='TSLA' AND quote_date='2025-11-06';
-UPDATE nasdaq.stock_quotes SET close_price=445.9100 WHERE symbol='TSLA' AND quote_date='2025-11-06';
 ```
 
 ## Configuration Examples
@@ -101,7 +86,7 @@ The RDS instance is automatically configured with:
 - **Logical Replication**: Enabled via `rds.logical_replication = 1`
 - **Backup Retention**: 7 days (required for CDC)
 - **Publication**: `openflow` publication created for CDC consumers
-- **Demo Schema**: `nasdaq` schema with stock market data
+- **Demo Schema**: Created by the setup script in `nasdaq-demo/db-setup/`
 - **WAL Retention Limit**: 50GB per replication slot to prevent storage issues
 
 ## Managing Publications

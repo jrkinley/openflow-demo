@@ -115,9 +115,22 @@ SELECT * FROM NASDAQ_DEMO.PUBLIC.HISTORICAL_STOCK_QUOTES LIMIT 10;
 
 ## Option B: PostgreSQL CDC
 
-The demo database was seeded during [Phase 1](phase-1-deploy-infrastructure.md#option-b-postgresql-cdc). Now deploy the Openflow CDC connector to replicate the data into Snowflake.
+### 2B.1 Set Up the Demo Database
 
-### 2B.1 Deploy the Openflow CDC Connector
+First, run the database setup script to create the schema and load the sample data into the RDS instance deployed in Phase 1.
+
+> **Cortex Code CLI**
+>
+> ```
+> Read the setup script at nasdaq-demo/db-setup/setup.sh then run it
+> to create the nasdaq schema and load the sample stock quote data
+> into the RDS PostgreSQL instance. Verify the data loaded by
+> querying the nasdaq.stock_quotes table.
+> ```
+
+For manual steps, see [db-setup/setup.sh](../db-setup/setup.sh).
+
+### 2B.2 Deploy the Openflow CDC Connector
 
 > **Cortex Code CLI**
 >
@@ -131,7 +144,7 @@ The demo database was seeded during [Phase 1](phase-1-deploy-infrastructure.md#o
 
 For details on the flow definition, see [openflow/default/nasdaq-demo-cdc.json](../openflow/default/nasdaq-demo-cdc.json).
 
-### 2B.2 Checkpoint
+### 2B.3 Checkpoint
 
 Verify data has landed in Snowflake:
 
@@ -141,7 +154,7 @@ SELECT COUNT(*) FROM NASDAQ_DEMO.PUBLIC.HISTORICAL_STOCK_QUOTES;
 SELECT * FROM NASDAQ_DEMO.PUBLIC.HISTORICAL_STOCK_QUOTES LIMIT 10;
 ```
 
-### 2B.3 Test CDC (optional)
+### 2B.4 Test CDC (optional)
 
 Demonstrate live Change Data Capture by updating a row in PostgreSQL and watching it appear in Snowflake:
 

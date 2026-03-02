@@ -14,10 +14,10 @@ if ! command -v psql &> /dev/null; then
 fi
 
 # Get RDS connection details from Terraform output
+TERRAFORM_DIR="$(cd "$(dirname "$0")/../../terraform/rds-postgres" && pwd)"
 echo "📡 Getting RDS connection details from Terraform..."
-cd ..
-RDS_HOST=$(terraform output -raw rds_hostname 2>/dev/null)
-RDS_USERNAME=$(terraform output -raw rds_username 2>/dev/null)
+RDS_HOST=$(cd "$TERRAFORM_DIR" && terraform output -raw rds_hostname 2>/dev/null)
+RDS_USERNAME=$(cd "$TERRAFORM_DIR" && terraform output -raw rds_username 2>/dev/null)
 
 if [[ -z "$RDS_HOST" ]]; then
     echo "❌ Error: Could not get RDS hostname from Terraform output"
@@ -48,12 +48,13 @@ export PGPASSWORD="$TF_VAR_db_password"
 export PGDATABASE="postgres"
 
 # Run the database setup
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+
 echo "📋 Creating schema and tables..."
-psql -f db-setup/scripts/01-schema.sql
+psql -f "$SCRIPT_DIR/scripts/01-schema.sql"
 
 echo "📊 Loading demo data..."
-# Pass SNOW as the stock symbol parameter
-psql -f db-setup/scripts/02-seed-data.sql
+psql -f "$SCRIPT_DIR/scripts/02-seed-data.sql"
 
 echo ""
 echo "🎉 Demo database setup complete!"
