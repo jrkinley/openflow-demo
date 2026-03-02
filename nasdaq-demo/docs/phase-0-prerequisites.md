@@ -43,3 +43,18 @@ ALTER ACCOUNT SET CORTEX_ENABLED_CROSS_REGION = 'AWS_EU';
 git clone https://github.com/jrkinley/openflow-demo.git
 cd openflow-demo/nasdaq-demo
 ```
+
+## Snowflake Database Setup
+
+Create the `NASDAQ_DEMO` database, stage, and permissions required by the workshop.
+
+> **Cortex Code CLI**
+>
+> ```
+> Run the SQL setup script at nasdaq-demo/snowflake/nasdaq_demo_setup.sql
+> against my Snowflake account to create the NASDAQ_DEMO database,
+> the earnings reports stage, and the permissions required by the
+> workshop.
+> ```
+
+For manual steps, see [snowflake/nasdaq_demo_setup.sql](../snowflake/nasdaq_demo_setup.sql).

@@ -9,7 +9,7 @@ Destroy all resources to avoid ongoing costs. Follow this order to handle depend
 > **Cortex Code CLI**
 >
 > ```
-> Read the teardown script at nasdaq-demo/snowflake/05_teardown.sql
+> Read the teardown script at nasdaq-demo/snowflake/nasdaq_demo_teardown.sql
 > and run it to drop all workshop objects from the NASDAQ_DEMO database.
 > ```
 
