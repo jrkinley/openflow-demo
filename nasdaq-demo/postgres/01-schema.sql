@@ -9,8 +9,8 @@ CREATE SCHEMA IF NOT EXISTS nasdaq;
 -- Set search path to include our demo schema
 SET search_path TO nasdaq, public;
 
--- Create a stock quotes table for historical market data
-CREATE TABLE IF NOT EXISTS stock_quotes (
+-- Create a table for historical market data
+CREATE TABLE IF NOT EXISTS historical_stock_quotes (
     id SERIAL PRIMARY KEY,
     symbol VARCHAR(10) NOT NULL,
     quote_date DATE NOT NULL,
@@ -24,19 +24,19 @@ CREATE TABLE IF NOT EXISTS stock_quotes (
     UNIQUE(symbol, quote_date)
 );
 
--- Create indexes for stock quotes table
-CREATE INDEX IF NOT EXISTS idx_stock_quotes_symbol ON stock_quotes(symbol);
-CREATE INDEX IF NOT EXISTS idx_stock_quotes_date ON stock_quotes(quote_date);
-CREATE INDEX IF NOT EXISTS idx_stock_quotes_symbol_date ON stock_quotes(symbol, quote_date);
+-- Create indexes
+CREATE INDEX IF NOT EXISTS idx_hsq_symbol ON historical_stock_quotes(symbol);
+CREATE INDEX IF NOT EXISTS idx_hsq_date ON historical_stock_quotes(quote_date);
+CREATE INDEX IF NOT EXISTS idx_hsq_symbol_date ON historical_stock_quotes(symbol, quote_date);
 
 -- Set REPLICA IDENTITY to DEFAULT for CDC (ensures primary keys are in WAL)
-ALTER TABLE stock_quotes REPLICA IDENTITY DEFAULT;
+ALTER TABLE historical_stock_quotes REPLICA IDENTITY DEFAULT;
 
 -- Create publication for Openflow CDC connector
 CREATE PUBLICATION openflow;
 
--- Add the stock_quotes table to the publication
-ALTER PUBLICATION openflow ADD TABLE stock_quotes;
+-- Add the table to the publication
+ALTER PUBLICATION openflow ADD TABLE historical_stock_quotes;
 
 \echo 'Schema setup completed successfully!'
-\echo 'Publication "openflow" created for CDC with stock_quotes table'
+\echo 'Publication "openflow" created for CDC with historical_stock_quotes table'

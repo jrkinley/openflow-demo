@@ -68,7 +68,8 @@ flowchart LR
 |-------|-------|-------|-----------|
 | 0 | Prerequisites & Setup | [docs/phase-0-prerequisites.md](docs/phase-0-prerequisites.md) | 15 min |
 | 1 | Deploy Infrastructure | [docs/phase-1-deploy-infrastructure.md](docs/phase-1-deploy-infrastructure.md) | 20-45 min |
-| 2 | Structured Data | [docs/phase-2-structured-data.md](docs/phase-2-structured-data.md) | 20 min |
+| 2A | Structured Data (Kafka) | [docs/phase-2a-structured-kafka.md](docs/phase-2a-structured-kafka.md) | 20 min |
+| 2B | Structured Data (PostgreSQL CDC) | [docs/phase-2b-structured-postgresql.md](docs/phase-2b-structured-postgresql.md) | 20 min |
 | 3 | Unstructured Data | [docs/phase-3-unstructured-data.md](docs/phase-3-unstructured-data.md) | 15 min |
 | 4 | Cortex AI | [docs/phase-4-cortex-ai.md](docs/phase-4-cortex-ai.md) | 30 min |
 | 5 | Cortex Agent | [docs/phase-5-cortex-agent.md](docs/phase-5-cortex-agent.md) | 15 min |

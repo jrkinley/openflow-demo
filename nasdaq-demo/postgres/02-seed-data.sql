@@ -17,7 +17,7 @@ CREATE TEMP TABLE temp_stock_data (
 
 -- Load CSV data using \copy command
 \set symbol 'TSLA'
-\copy temp_stock_data FROM 'db-setup/scripts/HistoricalData_TSLA.csv' WITH (FORMAT csv, HEADER true);
+\copy temp_stock_data FROM '../data/HistoricalData_TSLA.csv' WITH (FORMAT csv, HEADER true);
 
 -- Function to clean price data (remove $ and convert to decimal)
 CREATE OR REPLACE FUNCTION clean_price(price_text TEXT) 
@@ -35,8 +35,7 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
--- Insert all CSV data into stock_quotes table
-INSERT INTO stock_quotes (symbol, quote_date, close_price, volume, open_price, high_price, low_price)
+INSERT INTO historical_stock_quotes (symbol, quote_date, close_price, volume, open_price, high_price, low_price)
 SELECT 
     :'symbol' as symbol,
     parse_date(date_str) as quote_date,
@@ -65,5 +64,5 @@ SELECT
     MIN(close_price) as min_price,
     MAX(close_price) as max_price,
     AVG(close_price)::DECIMAL(10,2) as avg_price
-FROM stock_quotes 
+FROM historical_stock_quotes 
 GROUP BY symbol;

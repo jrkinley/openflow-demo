@@ -23,14 +23,14 @@ Upload the PDF earnings reports to the SFTP server:
 > **Cortex Code CLI**
 >
 > ```
-> Run the upload_reports.sh script in nasdaq-demo/ to upload all
+> Run the upload_reports.sh script in nasdaq-demo/sftp/ to upload all
 > earnings report PDFs from data/reports/ to the SFTP server.
 > ```
 
 Manual steps:
 
 ```bash
-cd nasdaq-demo
+cd nasdaq-demo/sftp
 chmod +x upload_reports.sh
 ./upload_reports.sh
 ```
@@ -38,7 +38,7 @@ chmod +x upload_reports.sh
 To upload reports for a single company:
 
 ```bash
-./upload_reports.sh data/reports/TSLA
+./upload_reports.sh ../data/reports/TSLA
 ```
 
 **Checkpoint** -- verify the files are on the SFTP server:
