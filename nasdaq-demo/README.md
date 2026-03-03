@@ -2,6 +2,8 @@
 
 A hands-on workshop demonstrating how to integrate structured and unstructured data sources into Snowflake using Openflow, build Cortex AI capabilities over that data, and deliver intelligent natural-language access through Snowflake Intelligence.
 
+The payoff: a natural-language agent that can answer questions spanning both quantitative market data and qualitative financial narratives -- all from a single platform.
+
 The workshop uses a financial services scenario with NASDAQ historical stock quotes (structured data) and quarterly earnings reports (unstructured data). The examples use Tesla (TSLA) throughout, but this can easily be replaced with stocks of your choice.
 
 ## Architecture

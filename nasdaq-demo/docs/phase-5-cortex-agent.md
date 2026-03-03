@@ -14,7 +14,7 @@ The agent definition is at [`snowflake/models/nasdaq_agent.sql`](../snowflake/mo
 > **Cortex Code CLI**
 >
 > ```
-> Check your skills for Cortex Agents. Read the agent SQL at
+> Check your skills for Cortex. Read the agent SQL at
 > nasdaq-demo/snowflake/models/nasdaq_agent.sql and create the
 > NASDAQ_AGENT in the NASDAQ_DEMO database.
 > ```
@@ -26,37 +26,9 @@ cd nasdaq-demo
 snow sql -f snowflake/models/nasdaq_agent.sql
 ```
 
-**Checkpoint** -- verify the agent was created:
-
-```bash
-snow sql -q "SHOW AGENTS IN NASDAQ_DEMO.PUBLIC;" --format json
-```
-
 ## 5.2 Test the Agent
 
-Try some questions that exercise both tools:
-
-**Structured data (Analyst):**
-
-```
-What was Tesla's highest closing price in 2025?
-```
-
-```
-What was the average daily trading volume for TSLA over the last 6 months?
-```
-
-**Unstructured data (Search):**
-
-```
-What were the key highlights from Tesla's Q3 2024 earnings report?
-```
-
-```
-What did Tesla report about vehicle delivery numbers in their most recent quarter?
-```
-
-**Combined (both tools):**
+Copy and paste these questions into the agent UI in Snowsight to test the blended intelligence across both structured and unstructured data:
 
 ```
 Tesla's stock dropped significantly in early 2025. Is there anything in the
@@ -71,7 +43,9 @@ vehicle deliveries? What did the earnings report say about revenue growth?
 > **Cortex Code CLI**
 >
 > ```
-> Run the NASDAQ_AGENT in the NASDAQ_DEMO database and ask: "What was
-> Tesla's closing stock price on the day they reported Q3 2024 earnings,
+> Run the NASDAQ_AGENT in the NASDAQ_DEMO database using
+> SNOWFLAKE.CORTEX.DATA_AGENT_RUN and ask: "What was the closing
+> stock price for TSLA on the day they reported Q3 2024 earnings,
 > and what were the key takeaways from that report?"
+> Parse the response with TRY_PARSE_JSON and show the text content.
 > ```

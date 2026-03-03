@@ -43,13 +43,18 @@ CREATE OR REPLACE AGENT NASDAQ_DEMO.PUBLIC.NASDAQ_AGENT
             type: cortex_search
             name: EarningsReportSearch
             description: >
-                Searches quarterly earnings report PDFs.
-                Use for questions about revenue, profit, guidance, financial
-                results, management commentary, and company performance narratives.
+                Searches quarterly earnings report PDFs. Results include the
+                relative_path which identifies the stock symbol and fiscal
+                quarter (e.g. TSLA/TSLA_FY25_Q1.pdf). Use for questions about
+                revenue, profit, guidance, financial results, management
+                commentary, and company performance narratives.
 
     tool_resources:
         StockQuoteAnalyst:
             semantic_view: NASDAQ_DEMO.PUBLIC.HISTORICAL_QUOTES_SEMANTIC_VIEW
+            execution_environment:
+                type: warehouse
+                warehouse: COMPUTE_WH
         EarningsReportSearch:
             name: NASDAQ_DEMO.PUBLIC.EARNINGS_REPORTS_SEARCH
             max_results: 5
