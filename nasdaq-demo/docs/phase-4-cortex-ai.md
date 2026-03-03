@@ -16,11 +16,12 @@ Use `AI_PARSE_DOCUMENT` to extract text content from the PDF files in the Snowfl
 > **Cortex Code CLI**
 >
 > ```
-> Check your skills for Cortex AI. In the NASDAQ_DEMO database, refresh
+> Check your skills for Cortex. In the NASDAQ_DEMO database, refresh
 > the EARNINGS_REPORTS_STAGE, then create a table called
 > EARNINGS_REPORTS_PARSED with columns relative_path (VARCHAR) and
-> markdown (VARIANT). Insert into it by using AI_PARSE_DOCUMENT in
-> LAYOUT mode on each file in the stage directory.
+> markdown (VARIANT). List the staged files using DIRECTORY() on the
+> stage, then for each file use TO_FILE() to pass it to
+> AI_PARSE_DOCUMENT in LAYOUT mode and insert the results.
 > ```
 
 Manual SQL:
@@ -63,12 +64,14 @@ Split the extracted text into chunks for Cortex Search indexing.
 > **Cortex Code CLI**
 >
 > ```
-> Check your skills for Cortex AI. In the NASDAQ_DEMO database, create
+> Check your skills for Cortex. In the NASDAQ_DEMO database, create
 > a table called EARNINGS_REPORTS_CHUNKS with columns relative_path
-> (VARCHAR) and chunk (STRING). Populate it by using
-> SNOWFLAKE.CORTEX.SPLIT_TEXT_RECURSIVE_CHARACTER on the content field
-> from EARNINGS_REPORTS_PARSED, using markdown format with a chunk size
-> of 2000 tokens, 100 token overlap, and paragraph separators.
+> (VARCHAR) and chunk (STRING). Then INSERT into it by calling
+> SNOWFLAKE.CORTEX.SPLIT_TEXT_RECURSIVE_CHARACTER on
+> markdown:content::STRING from EARNINGS_REPORTS_PARSED with these
+> parameters: format 'markdown', chunk size 2000, overlap 100,
+> separators ['\n\n']. The function returns an array -- use LATERAL
+> FLATTEN to expand into one row per chunk.
 > ```
 
 Manual SQL:
@@ -115,10 +118,11 @@ Create a Cortex Search service over the chunked earnings report text.
 > **Cortex Code CLI**
 >
 > ```
-> Check your skills for Cortex Search. In the NASDAQ_DEMO database,
+> Check your skills for Cortex. In the NASDAQ_DEMO database,
 > create a Cortex Search service called EARNINGS_REPORTS_SEARCH on the
-> chunk column of the EARNINGS_REPORTS_CHUNKS table, using the
-> COMPUTE_WH warehouse and a target lag of 5 minutes.
+> chunk column of the EARNINGS_REPORTS_CHUNKS table. Include
+> relative_path in the source query so results can be traced back to
+> their source document. Set a target lag of 5 minutes.
 > ```
 
 Manual SQL:
@@ -155,7 +159,7 @@ The semantic view definition is at [`snowflake/models/historical_quotes_semantic
 > **Cortex Code CLI**
 >
 > ```
-> Check your skills for Cortex Analyst. Read the semantic view SQL at
+> Check your skills for Cortex. Read the semantic view SQL at
 > nasdaq-demo/snowflake/models/historical_quotes_semantic_view.sql and
 > create it in the NASDAQ_DEMO database. Then test it by asking:
 > "What was the highest closing price for TSLA?"
@@ -174,6 +178,3 @@ snow sql -f snowflake/models/historical_quotes_semantic_view.sql
 What was the average daily trading volume for TSLA in the last quarter?
 ```
 
-## Notebooks
-
-Snowflake notebook versions of this phase are planned for a future update.
