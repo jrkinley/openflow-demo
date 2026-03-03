@@ -7,7 +7,7 @@ This is the cherry on top -- everything built in the previous phases comes toget
 ## 7.1 Open Snowflake Intelligence
 
 1. In Snowsight, navigate to **AI & ML** -> **Snowflake Intelligence**
-2. Select the **NASDAQ_AGENT** created in Phase 6
+2. Select the **Nasdaq Financial Analyst** agent created in Phase 6
 
 The agent is now available as a conversational interface backed by both the structured stock data and the unstructured earnings reports.
 
