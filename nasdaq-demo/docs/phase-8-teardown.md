@@ -1,10 +1,10 @@
-# Phase 7: Teardown & Cleanup
+# Phase 8: Teardown & Cleanup
 
 Destroy all resources to avoid ongoing costs. Follow this order to handle dependencies correctly.
 
 > **Important**: AWS Transfer Family (SFTP) costs ~$0.30/hour even when idle. MSK and RDS also incur hourly charges. Tear down promptly after the workshop.
 
-## 7.1 Snowflake Objects
+## 8.1 Snowflake Objects
 
 > **Cortex Code CLI**
 >
@@ -35,7 +35,7 @@ REMOVE @EARNINGS_REPORTS_STAGE;
 DROP STAGE IF EXISTS EARNINGS_REPORTS_STAGE;
 
 -- Structured data objects
-DROP DYNAMIC TABLE IF EXISTS HISTORICAL_QUOTES_TYPED;
+DROP VIEW IF EXISTS HISTORICAL_QUOTES_TYPED;
 DROP VIEW IF EXISTS HISTORICAL_QUOTES_TIMESERIES;
 DROP TABLE IF EXISTS HISTORICAL_QUOTES_FORECAST;
 
@@ -44,7 +44,7 @@ TRUNCATE TABLE IF EXISTS HISTORICAL_STOCK_QUOTES;
 -- DROP TABLE IF EXISTS HISTORICAL_STOCK_QUOTES;
 ```
 
-## 7.2 AWS Infrastructure
+## 8.2 AWS Infrastructure
 
 Destroy in any order -- the Terraform modules are independent.
 
@@ -93,7 +93,7 @@ cd terraform/rds-postgres
 terraform destroy -var-file="examples/existing-vpc.tfvars" -var="db_password=unused"
 ```
 
-## 7.3 Local Cleanup (optional)
+## 8.3 Local Cleanup (optional)
 
 ```bash
 # Remove rpk profile (if created)
@@ -103,7 +103,7 @@ rpk profile delete msk-demo
 rm -f nasdaq-demo/.env
 ```
 
-## 7.4 Checkpoint
+## 8.4 Checkpoint
 
 Verify everything is gone:
 

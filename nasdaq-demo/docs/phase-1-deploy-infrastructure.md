@@ -2,7 +2,7 @@
 
 Deploy the external data sources on AWS using Terraform. All services are deployed into the same existing VPC.
 
-You will always deploy the **SFTP server** (needed for unstructured data in Phase 3). Then choose either **MSK** (Kafka) or **RDS-Postgres** (CDC) depending on your Phase 2 path.
+You will always deploy the **SFTP server** (needed for unstructured data in Phase 4). Then choose either **MSK** (Kafka) or **RDS-Postgres** (CDC) depending on your Phase 2 path.
 
 ## VPC Configuration
 
@@ -50,7 +50,7 @@ For manual steps, see [terraform/sftp/README.md](../../terraform/sftp/README.md)
 
 Deploys an AWS Managed Streaming for Apache Kafka cluster with SASL/SCRAM authentication and public access.
 
-> **Important**: MSK provisioning takes approximately **45 minutes or more** end-to-end. The cluster itself takes 20+ minutes to create, then enabling public access triggers another 20+ minute reconfiguration. Plan accordingly -- you can move ahead to [Phase 3](phase-3-unstructured-data.md) while waiting.
+> **Important**: MSK provisioning takes approximately **45 minutes or more** end-to-end. The cluster itself takes 20+ minutes to create, then enabling public access triggers another 20+ minute reconfiguration. Plan accordingly -- you can move ahead to [Phase 4](phase-4-unstructured-data.md) while waiting.
 
 > **Cortex Code CLI**
 >

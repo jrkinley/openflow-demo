@@ -1,8 +1,8 @@
-# Phase 3: Unstructured Data
+# Phase 4: Unstructured Data
 
 Upload quarterly earnings report PDFs to the SFTP server and deploy the Openflow SFTP pipeline to land them in a Snowflake stage.
 
-## 3.1 Upload Earnings Reports to SFTP
+## 4.1 Upload Earnings Reports to SFTP
 
 Upload the PDF earnings reports to the SFTP server:
 
@@ -40,7 +40,7 @@ cd ../terraform/sftp
 echo "ls -la" | sftp -i aws_sftp_key openflow-user@$(terraform output -raw server_endpoint)
 ```
 
-## 3.2 Configure Network Access
+## 4.2 Configure Network Access
 
 The Openflow runtime needs network access to reach the SFTP server.
 
@@ -78,7 +78,7 @@ GRANT USAGE ON INTEGRATION SFTP_EAI TO ROLE OPENFLOW_RUNTIME_ROLE;
 
 Replace `<sftp-server-endpoint>` with your SFTP server endpoint from `terraform output`.
 
-## 3.3 Deploy the Openflow SFTP Pipeline
+## 4.3 Deploy the Openflow SFTP Pipeline
 
 Deploy the SFTP pipeline to Openflow so it picks up the PDFs and writes them to a Snowflake internal stage.
 
@@ -119,7 +119,7 @@ Deploy the SFTP pipeline to Openflow so it picks up the PDFs and writes them to 
 
 For details on the flow definition, see [openflow/default/nasdaq-demo-sftp.json](../openflow/default/nasdaq-demo-sftp.json).
 
-## 3.4 Checkpoint
+## 4.4 Checkpoint
 
 Verify the earnings reports have landed in the Snowflake stage:
 

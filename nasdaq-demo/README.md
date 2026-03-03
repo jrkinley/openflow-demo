@@ -72,10 +72,11 @@ flowchart LR
 | 1 | Deploy Infrastructure | [docs/phase-1-deploy-infrastructure.md](docs/phase-1-deploy-infrastructure.md) | 20-45 min |
 | 2A | Structured Data (Kafka) | [docs/phase-2a-structured-kafka.md](docs/phase-2a-structured-kafka.md) | 20 min |
 | 2B | Structured Data (PostgreSQL CDC) | [docs/phase-2b-structured-postgresql.md](docs/phase-2b-structured-postgresql.md) | 20 min |
-| 3 | Unstructured Data | [docs/phase-3-unstructured-data.md](docs/phase-3-unstructured-data.md) | 15 min |
-| 4 | Cortex AI | [docs/phase-4-cortex-ai.md](docs/phase-4-cortex-ai.md) | 30 min |
-| 5 | Cortex Agent | [docs/phase-5-cortex-agent.md](docs/phase-5-cortex-agent.md) | 15 min |
-| 6 | Snowflake Intelligence | [docs/phase-6-snowflake-intelligence.md](docs/phase-6-snowflake-intelligence.md) | 15 min |
-| 7 | Teardown & Cleanup | [docs/phase-7-teardown.md](docs/phase-7-teardown.md) | 10 min |
+| 3 | Streamlit Dashboard | [docs/phase-3-streamlit-dashboard.md](docs/phase-3-streamlit-dashboard.md) | 10 min |
+| 4 | Unstructured Data | [docs/phase-4-unstructured-data.md](docs/phase-4-unstructured-data.md) | 15 min |
+| 5 | Cortex AI | [docs/phase-5-cortex-ai.md](docs/phase-5-cortex-ai.md) | 30 min |
+| 6 | Cortex Agent | [docs/phase-6-cortex-agent.md](docs/phase-6-cortex-agent.md) | 15 min |
+| 7 | Snowflake Intelligence | [docs/phase-7-snowflake-intelligence.md](docs/phase-7-snowflake-intelligence.md) | 15 min |
+| 8 | Teardown & Cleanup | [docs/phase-8-teardown.md](docs/phase-8-teardown.md) | 10 min |
 
 **Total estimated working time: ~3 hours** (half-day session with breaks)

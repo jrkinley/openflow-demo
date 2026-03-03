@@ -1,4 +1,4 @@
-# Phase 4: Cortex AI
+# Phase 5: Cortex AI
 
 Build AI capabilities over the structured and unstructured data that landed in Snowflake during Phases 2 and 3.
 
@@ -7,9 +7,9 @@ By the end of this phase you will have:
 - A **Cortex Search** service for natural-language queries over earnings reports
 - A **Cortex Analyst** semantic view for structured stock quote analysis
 
-These components are combined into a Cortex Agent in [Phase 5](phase-5-cortex-agent.md).
+These components are combined into a Cortex Agent in [Phase 6](phase-6-cortex-agent.md).
 
-## 4.1 Parse Earnings Report PDFs
+## 5.1 Parse Earnings Report PDFs
 
 Use `AI_PARSE_DOCUMENT` to extract text content from the PDF files in the Snowflake stage.
 
@@ -57,7 +57,7 @@ ORDER BY relative_path
 LIMIT 5;
 ```
 
-## 4.2 Chunk the Parsed Text
+## 5.2 Chunk the Parsed Text
 
 Split the extracted text into chunks for Cortex Search indexing.
 
@@ -111,7 +111,7 @@ ORDER BY relative_path
 LIMIT 5;
 ```
 
-## 4.3 Create Cortex Search Service
+## 5.3 Create Cortex Search Service
 
 Create a Cortex Search service over the chunked earnings report text.
 
@@ -150,7 +150,7 @@ FROM TABLE(
 LIMIT 10;
 ```
 
-## 4.4 Create Cortex Analyst Semantic View
+## 5.4 Create Cortex Analyst Semantic View
 
 Create a semantic view over the structured stock quote data so Cortex Analyst can answer natural-language questions about prices, volumes, and trends.
 

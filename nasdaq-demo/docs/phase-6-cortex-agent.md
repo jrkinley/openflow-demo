@@ -1,10 +1,10 @@
-# Phase 5: Cortex Agent
+# Phase 6: Cortex Agent
 
 Create a Cortex Agent that combines the structured stock quote data (via Cortex Analyst) with the unstructured earnings reports (via Cortex Search) into a single conversational interface.
 
 This is the payoff of the workshop -- a natural-language agent that can answer questions spanning both quantitative market data and qualitative financial narratives.
 
-## 5.1 Create the Agent
+## 6.1 Create the Agent
 
 The agent definition is at [`snowflake/models/nasdaq_agent.sql`](../snowflake/models/nasdaq_agent.sql). It configures two tools:
 
@@ -26,7 +26,7 @@ cd nasdaq-demo
 snow sql -f snowflake/models/nasdaq_agent.sql
 ```
 
-## 5.2 Test the Agent
+## 6.2 Test the Agent
 
 Copy and paste these questions into the agent UI in Snowsight to test the blended intelligence across both structured and unstructured data:
 
