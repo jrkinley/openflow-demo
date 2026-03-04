@@ -55,24 +55,6 @@ echo "get test.txt" | sftp -i aws_sftp_key openflow-user@$(terraform output -raw
 echo "rm test.txt" | sftp -i aws_sftp_key openflow-user@$(terraform output -raw server_endpoint)
 ```
 
-### Bulk Upload Script
-
-Use the `upload_files.sh` script to upload all files from a directory:
-
-```bash
-# Upload all files from a directory
-./upload_files.sh /path/to/directory
-
-# Example: Upload historical data files
-./upload_files.sh ../nasdaq-demo/data
-```
-
-The script will:
-- Validate the directory exists and contains files
-- Check for required Terraform outputs and SSH keys
-- Upload each file individually to the SFTP server
-- Display progress and summary statistics
-
 ## Cleanup
 
 Before destroying the Terraform resources, remove the manually created user and S3 bucket:

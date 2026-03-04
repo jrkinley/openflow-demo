@@ -14,10 +14,10 @@ if ! command -v psql &> /dev/null; then
 fi
 
 # Get RDS connection details from Terraform output
+TERRAFORM_DIR="$(cd "$(dirname "$0")/../../terraform/rds-postgres" && pwd)"
 echo "📡 Getting RDS connection details from Terraform..."
-cd ..
-RDS_HOST=$(terraform output -raw rds_hostname 2>/dev/null)
-RDS_USERNAME=$(terraform output -raw rds_username 2>/dev/null)
+RDS_HOST=$(cd "$TERRAFORM_DIR" && terraform output -raw rds_hostname 2>/dev/null)
+RDS_USERNAME=$(cd "$TERRAFORM_DIR" && terraform output -raw rds_username 2>/dev/null)
 
 if [[ -z "$RDS_HOST" ]]; then
     echo "❌ Error: Could not get RDS hostname from Terraform output"
@@ -48,12 +48,13 @@ export PGPASSWORD="$TF_VAR_db_password"
 export PGDATABASE="postgres"
 
 # Run the database setup
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+
 echo "📋 Creating schema and tables..."
-psql -f db-setup/scripts/01-schema.sql
+psql -f "$SCRIPT_DIR/01-schema.sql"
 
 echo "📊 Loading demo data..."
-# Pass SNOW as the stock symbol parameter
-psql -f db-setup/scripts/02-seed-data.sql
+psql -f "$SCRIPT_DIR/02-seed-data.sql"
 
 echo ""
 echo "🎉 Demo database setup complete!"
@@ -61,9 +62,9 @@ echo "🔗 Connection details:"
 echo "   Host: $RDS_HOST"
 echo "   Database: postgres"
 echo "   Schema: nasdaq"
-echo "   Table: stock_quotes"
+echo "   Table: historical_stock_quotes"
 echo ""
 echo "💡 Next steps:"
 echo "   1. Connect with: psql -h $RDS_HOST -U $RDS_USERNAME -d postgres"
-echo "   2. View data: SELECT * FROM nasdaq.stock_quotes ORDER BY quote_date DESC LIMIT 10;"
-echo "   3. Test CDC: UPDATE nasdaq.stock_quotes SET close_price=230.00 WHERE symbol='SNOW' AND quote_date='2025-09-10';"
+echo "   2. View data: SELECT * FROM nasdaq.historical_stock_quotes ORDER BY quote_date DESC LIMIT 10;"
+echo "   3. Test CDC: UPDATE nasdaq.historical_stock_quotes SET close_price=230.00 WHERE symbol='TSLA' AND quote_date='2025-09-10';"

@@ -7,7 +7,7 @@
     {
       "name": "symbol",
       "type": "string",
-      "doc": "Stock ticker symbol (e.g., AAPL, MSFT, SNOW)"
+      "doc": "Stock ticker symbol (e.g., TSLA, AAPL, SNOW)"
     },
     {
       "name": "date",

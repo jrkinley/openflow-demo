@@ -8,10 +8,11 @@ import streamlit as st
 import pandas as pd
 import altair as alt
 from datetime import datetime, timedelta
+from snowflake.snowpark.context import get_active_session
 
 # Page configuration
 st.set_page_config(
-    page_title="Stock Quote History",
+    page_title="NASDAQ Financial Dashboard",
     layout="wide",
     initial_sidebar_state="expanded"
 )
@@ -31,12 +32,11 @@ st.markdown("""
     """, unsafe_allow_html=True)
 
 
+session = get_active_session()
+
 @st.cache_data(ttl=600)
 def load_data():
-    """Load stock quote data from Snowflake."""
-    # When deployed in Snowflake, this will use the app's context
-    conn = st.connection("snowflake")
-    
+    """Load stock quote data from Snowflake via Snowpark session."""
     query = """
     SELECT 
         SYMBOL,
@@ -50,7 +50,7 @@ def load_data():
     ORDER BY QUOTE_DATE DESC
     """
     
-    df = conn.query(query)
+    df = session.sql(query).to_pandas()
     df['QUOTE_DATE'] = pd.to_datetime(df['QUOTE_DATE'])
     
     return df
@@ -80,7 +80,7 @@ def format_large_number(num):
 
 
 # Main app
-st.title("Nasdaq Stock Quote History")
+st.title("NASDAQ Financial Dashboard")
 st.markdown("Explore and compare historical stock performance")
 
 # Load data
