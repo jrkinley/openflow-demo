@@ -29,6 +29,12 @@
 - **Snowflake** -- Enterprise edition with Cortex features enabled. Your user must have the `SNOWFLAKE.CORTEX_USER` database role and `ACCOUNTADMIN` access for initial setup.
 - **AWS** -- An account with credentials configured (`aws configure`) and permissions to create MSK, RDS, SFTP, and related networking resources.
 
+## Openflow Runtime
+
+An Openflow runtime must be provisioned in your Snowflake account before starting the workshop.
+
+Before provisioning the runtime, create the `OPENFLOW_RUNTIME_ROLE` and assign it to the runtime during setup. The workshop setup script assumes this role already exists and grants it the permissions needed for the workshop -- it does not create the role itself.
+
 ## Cortex Code CLI Setup
 
 On first run, `cortex` will guide you through connecting to your Snowflake account. If your Cortex models are not available in your region, you may need to enable cross-region inference:
