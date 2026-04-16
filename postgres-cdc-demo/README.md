@@ -32,7 +32,11 @@ The skill guides you through instance creation, data loading, connector deployme
 Clean up postgres cdc demo
 ```
 
-## What the skill covers
+## Snowsight Worksheet
+
+If you don't have access to the Cortex Code CLI — or prefer to use [Cortex Code in Snowsight](https://docs.snowflake.com/en/user-guide/cortex-code/cortex-code-snowsight) — import [`worksheet.sql`](worksheet.sql) into a Snowsight SQL worksheet. It contains the same step-by-step tutorial with all SQL commands ready to run. Steps that require `psql` or the Openflow UI are marked with `ACTION` comment blocks.
+
+## What the demo covers
 
 1. **Snowflake Postgres instance** -- Network policy, instance creation, enable logical replication via `ALTER SYSTEM SET wal_level = logical`.
 2. **Data population** -- Load ~12.9k rows of WHO life-expectancy data (190+ countries, 2000--2021) and create a CDC publication.
@@ -47,6 +51,7 @@ Clean up postgres cdc demo
 postgres-cdc-demo/
 ├── README.md
 ├── SKILL.md                   # Cortex Code CLI skill
+├── worksheet.sql              # Snowsight SQL worksheet (manual alternative)
 └── RELAY_WHS.csv              # WHO life-expectancy data
 ```
 
