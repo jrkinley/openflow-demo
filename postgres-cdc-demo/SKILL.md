@@ -352,13 +352,12 @@ If no existing connector is found, deploy a new one.
 | Parameter | Value |
 |-----------|-------|
 | Destination Database | `PG_CDC_DEMO_DB` |
-| Snowflake Authentication Strategy | `SNOWFLAKE_MANAGED_TOKEN` |
+| Snowflake Authentication Strategy | `SNOWFLAKE_MANAGED` |
 | Snowflake Account Identifier | *(leave blank)* |
 | Snowflake Username | *(leave blank)* |
 | Snowflake Private Key | *(leave blank)* |
 | Snowflake Role | `OPENFLOW_CDC_ROLE` |
 | Snowflake Warehouse | A warehouse that `OPENFLOW_CDC_ROLE` has USAGE and OPERATE on (e.g. `OPENFLOW_WH`). **This parameter is required** — without it, MERGE statements will fail. |
-| Object Identifier Resolution | `CASE_INSENSITIVE` (recommended) |
 
 **PostgreSQL Ingestion Parameters:**
 
@@ -366,6 +365,7 @@ If no existing connector is found, deploy a new one.
 |-----------|-------|
 | Included Table Names | `who.life_expectancy` |
 | Merge Task Schedule CRON | `* * * * * ?` (continuous) |
+| Object Identifier Resolution | `CASE_INSENSITIVE` (recommended) |
 
 **Parameter notes:**
 - Non-sensitive parameters can be set in one call.
@@ -373,7 +373,7 @@ If no existing connector is found, deploy a new one.
 - PostgreSQL JDBC Driver must be uploaded as a Reference Asset, not set as a parameter value. Download from [jdbc.postgresql.org](https://jdbc.postgresql.org/download/).
 
 **Controller services note:**
-When enabling controller services, the **Private Key Service** controller will likely fail validation because we are using `SNOWFLAKE_MANAGED_TOKEN` and have no private key configured. This is expected. Disable or ignore the Private Key Service — it is not needed for managed token authentication. All other controller services should enable successfully.
+When enabling controller services, the **Private Key Service** controller will likely fail validation because we are using `SNOWFLAKE_MANAGED` and have no private key configured. This is expected. Disable or ignore the Private Key Service — it is not needed for managed authentication. All other controller services should enable successfully.
 
 If redeploying after a failed attempt: delete the process group, list and delete any orphan parameter contexts, then redeploy fresh.
 

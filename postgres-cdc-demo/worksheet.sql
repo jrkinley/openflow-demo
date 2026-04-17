@@ -203,23 +203,23 @@ GRANT USAGE ON INTEGRATION PG_CDC_DEMO_EAI TO ROLE OPENFLOW_CDC_ROLE;
 -- 4c. Configure Destination Parameters:
 --
 --   Destination Database:              PG_CDC_DEMO_DB
---   Snowflake Authentication Strategy: SNOWFLAKE_MANAGED_TOKEN
+--   Snowflake Authentication Strategy: SNOWFLAKE_MANAGED
 --   Snowflake Account Identifier:      (leave blank)
 --   Snowflake Username:                (leave blank)
 --   Snowflake Private Key:             (leave blank)
 --   Snowflake Role:                    OPENFLOW_CDC_ROLE
 --   Snowflake Warehouse:               OPENFLOW_WH   ← REQUIRED, MERGE will fail without this
---   Object Identifier Resolution:      CASE_INSENSITIVE
 --
 -- 4d. Configure Ingestion Parameters:
 --
 --   Included Table Names:      who.life_expectancy
 --   Merge Task Schedule CRON:  * * * * * ?    (continuous)
+--   Object Identifier Resolution:      CASE_INSENSITIVE
 --
 -- 4e. Enable and start:
 --   1. Right-click on the canvas → Enable all Controller Services
 --      NOTE: The "Private Key Service" will fail — this is expected when
---      using SNOWFLAKE_MANAGED_TOKEN. Disable or ignore it.
+--      using SNOWFLAKE_MANAGED. Disable or ignore it.
 --   2. Right-click the process group → Start
 --
 -- Continue once the connector is running.
