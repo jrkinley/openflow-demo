@@ -102,26 +102,49 @@ Open the Cortex Code CLI from this project directory and use the following promp
 ```
 Deploy and run the IMF DataMapper demo:
 
-1. Read your Openflow skills so you know how to interact
-   with flows and the Openflow runtime.
-2. Verify that my Openflow runtime exists and is active.
+1. Read your Openflow skills once for authentication,
+   runtime selection, and connection patterns. Do not
+   re-read every reference; for lifecycle and import,
+   follow the concrete operations in steps 5 and 8.
+2. Use your Openflow skills to list the active Openflow
+   runtimes. Present the list to the user and ask which
+   runtime they would like to use for the demo. Use that
+   runtime for all subsequent steps.
 3. Check that the following all exist: the API_DEMO
    database, the IMF_DATAMAPPER_INDICATORS table, and
    the IMF_API_ACCESS external access integration. If
    anything is missing, follow the Snowflake Setup section
    in the README to create it. If you are unable to
    complete any prerequisite, state what failed and stop.
-4. Use the project's Python virtual environment (.venv)
-   for all nipyapi operations via Python, not the CLI.
-5. Deploy the imf-weo.json flow to my Openflow runtime
-   and start it.
-6. Wait for the flow to finish. Poll every 10 seconds
-   and wait until the process group has processed data.
-   Only then stop the flow.
+   Note: each run of the flow truncates and reloads
+   IMF_DATAMAPPER_INDICATORS, so existing row counts from
+   prior runs are expected.
+4. Use the project's virtual environment (.venv) for
+   nipyapi. The Openflow CLI and nipyapi Python are both
+   fine---mix them as needed. In Python, nipyapi calls
+   typically return dicts (structured objects), not JSON
+   strings; do not json.loads unless you truly have a str.
+5. Parameter context and deploy: imf-weo.json defines a
+   single context named "IMF DataMapper Parameters" with
+   parameter imf_base_endpoint (default
+   https://www.imf.org/external/datamapper/api/v1). On the
+   selected runtime, if that context name already exists,
+   ask the user to reuse it or create a new one. Import the
+   flow with import_flow_definition, create or attach
+   contexts with nipyapi.parameters as needed, then start
+   with ci start_flow.
+6. Poll every 10 seconds. The flow usually completes in
+   under two minutes. Treat it as finished when
+   queued_flowfiles=0 and active_threads=0 for two
+   consecutive polls, then stop with ci stop_flow.
 7. Verify the data loaded by querying the table to list
-   the top 10 countries by GDP per capita for the
-   current year.
-8. Delete the flow instance when done.
+   the top 10 countries by GDP per capita (indicator
+   NGDPDPC) for the current year.
+8. Pause before cleaning up. Ask the user when they are
+   ready to clean up. Only after they confirm, delete the
+   flow instance with ci cleanup --delete_parameter_context
+   --force (adjust flags if your Openflow CLI version
+   differs).
 ```
 
 ### Documentation
