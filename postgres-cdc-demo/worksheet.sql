@@ -99,24 +99,17 @@ DESCRIBE POSTGRES INSTANCE PG_CDC_DEMO
 --   );
 --
 -- 2c. Load the CSV data via a temp staging table.
---     The RELAY_WHS.csv file is in the demo repo (postgres-cdc-demo/).
---     Start psql from that directory, or use the full path in the \copy command.
+--     TEMP tables exist only in the session that created them. Do not run CREATE,
+--     \copy, and INSERT as separate psql processes (e.g. multiple psql -c calls).
 --
---   CREATE TEMP TABLE _raw_import (
---       ind_id TEXT, ind_code TEXT, ind_uuid TEXT, ind_per_code TEXT,
---       dim_time TEXT, dim_time_type TEXT, dim_geo_code_m49 TEXT,
---       dim_geo_code_type TEXT, dim_publish_state TEXT, ind_name TEXT,
---       geo_name_short TEXT, dim_sex TEXT, amount_n TEXT
---   );
+--     From the directory that contains RELAY_WHS.csv, run one bash heredoc so all
+--     statements share one psql session (same pattern as Step 3b in SKILL.md):
+--     cd, then psql ... <<'PSQL_LOAD' with \set ON_ERROR_STOP on, CREATE TEMP TABLE,
+--     \copy _raw_import FROM 'RELAY_WHS.csv' ..., INSERT ... SELECT ... FROM _raw_import,
+--     DROP TABLE _raw_import; then closing PSQL_LOAD on its own line.
 --
---   \copy _raw_import FROM 'RELAY_WHS.csv' WITH (FORMAT csv, HEADER true)
---
---   INSERT INTO who.life_expectancy (year, geo_code, geo_code_type, geo_name, sex, life_expectancy)
---   SELECT dim_time::SMALLINT, dim_geo_code_m49::SMALLINT, dim_geo_code_type,
---          geo_name_short, dim_sex, amount_n::NUMERIC(16,8)
---   FROM _raw_import;
---
---   DROP TABLE _raw_import;
+--     Or open one interactive psql, paste that entire block, and use an absolute
+--     path in the \copy line if your cwd is not the demo directory.
 --
 -- 2d. Create the CDC publication:
 --
@@ -128,7 +121,7 @@ DESCRIBE POSTGRES INSTANCE PG_CDC_DEMO
 --   -- Expected: 12,936 rows
 --
 --   SELECT * FROM who.life_expectancy
---   WHERE geo_name = 'Switzerland'
+--   WHERE geo_name LIKE 'United Kingdom%'
 --   ORDER BY year DESC, sex LIMIT 10;
 --
 -- Once verified, return to this worksheet.
@@ -234,7 +227,7 @@ SELECT COUNT(*) FROM PG_CDC_DEMO_DB.WHO.LIFE_EXPECTANCY;
 -- If 0, wait another 30 seconds and retry.
 
 SELECT * FROM PG_CDC_DEMO_DB.WHO.LIFE_EXPECTANCY
-WHERE GEO_NAME = 'Switzerland'
+WHERE GEO_NAME LIKE 'United Kingdom%'
 ORDER BY YEAR DESC, SEX
 LIMIT 10;
 
@@ -243,36 +236,54 @@ LIMIT 10;
 -- STEP 6: Test live CDC
 -- =====================================================================
 
--- Use this query in Snowsight to watch the change arrive in real time.
--- Run it before and after each update below:
+-- The table uses GEO_NAME (WHO label), not a "country" column. UK rows use a
+-- long name such as "United Kingdom of Great Britain and Northern Ireland".
+
+-- Snowsight / worksheet: run these in Snowflake before and after each Postgres
+-- update below (parallel with CLI is good for demos).
 SELECT YEAR, GEO_NAME, SEX, LIFE_EXPECTANCY
 FROM PG_CDC_DEMO_DB.WHO.LIFE_EXPECTANCY
-WHERE GEO_CODE = 826 AND YEAR = 2021
+WHERE YEAR = 2021 AND GEO_NAME LIKE 'United Kingdom%'
 ORDER BY SEX;
+
+SELECT *
+FROM PG_CDC_DEMO_DB.WHO.LIFE_EXPECTANCY
+WHERE YEAR = 2021 AND SEX = 'FEMALE' AND GEO_NAME LIKE 'United Kingdom%';
 
 -- ACTION: Connect to the Postgres instance's "postgres" database using
 -- the .pgpass file you set up in Step 2:
 --
 --   psql "host=<PG_HOST> port=5432 user=snowflake_admin dbname=postgres sslmode=require"
 --
--- Then run this update:
+-- Optional — find the UK female 2021 row before updating:
+--
+--   SELECT year, geo_code, geo_name, sex, life_expectancy
+--   FROM who.life_expectancy
+--   WHERE year = 2021 AND sex = 'FEMALE' AND geo_name LIKE 'United Kingdom%'
+--   ORDER BY geo_name;
+--
+-- Then run this update (81.93 -> 100.00 for the test):
 --
 --   UPDATE who.life_expectancy SET life_expectancy = 100.00
---   WHERE geo_code = 826 AND year = 2021 AND sex = 'FEMALE';
+--   WHERE year = 2021 AND sex = 'FEMALE' AND geo_name LIKE 'United Kingdom%';
 --
 -- Wait 30-90 seconds for the change to propagate (typically ~60 seconds
--- for the first CDC change), then re-run the SELECT above in this worksheet.
+-- for the first CDC change), then re-run the two SELECTs above in this worksheet.
 -- The UK Female 2021 value should now show 100.00.
 
 -- ACTION: In the same psql session, revert the change:
 --
 --   UPDATE who.life_expectancy SET life_expectancy = 81.93070945
---   WHERE geo_code = 826 AND year = 2021 AND sex = 'FEMALE';
+--   WHERE year = 2021 AND sex = 'FEMALE' AND geo_name LIKE 'United Kingdom%';
 --
--- Wait 30-90 seconds, then re-run the SELECT above.
+-- Wait 30-90 seconds, then re-run the two SELECTs above.
 -- The value should be back to 81.93070945.
 --
 -- CDC round-trip verified!
+--
+-- Optional manual follow-on (psql login, Postgres UPDATEs, Snowflake SELECTs
+-- in one place): see Step 6c in postgres-cdc-demo/SKILL.md — print that section
+-- after an automated Cortex run, or copy the SQL from there before teardown.
 
 
 -- =====================================================================

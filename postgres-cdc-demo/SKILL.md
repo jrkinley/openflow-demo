@@ -18,7 +18,7 @@ Use this skill when the user wants to:
 2. **Data population** (Step 3) — Load WHO life-expectancy data, create CDC publication
 3. **Snowflake target setup** (Step 4) — Target database, RBAC, network rule, EAI
 4. **Openflow CDC connector** (Step 5) — Deploy and start the connector
-5. **Verification** (Step 6) — Confirm data lands, test live CDC
+5. **Verification** (Step 6) — Confirm data lands, automated live CDC round-trip (6b), then optional **manual playbook** (6c: psql login, `UPDATE`s, Snowsight `SELECT`s) before teardown
 6. **Teardown** (Step 7) — Remove connector, Snowflake objects, drop Postgres instance
 
 ## Variables
@@ -43,13 +43,16 @@ Track these throughout the skill. Defaults shown in parentheses.
 2. **Batch commands aggressively** — run independent checks in parallel.
 3. **Store all variable values** as you collect them; reference them in later steps.
 4. **Never display passwords** in chat output. Save them silently.
+5. **Postgres CSV load (Step 3b) must run in a single psql session.** `CREATE TEMP TABLE` and client `\copy` are session-scoped; do not split them across separate `psql -c` calls or separate tool invocations. Run **one** shell command that `cd`s to the directory containing `RELAY_WHS.csv` and feeds the full Step 3b heredoc to `psql` on stdin (as written in Step 3b), or open **one** interactive `psql` and paste that entire block. Do not rely on an external `.sql` file unless the user chooses to create one locally.
 6. **Use a `.pgpass` file for psql connections** to avoid passwords appearing on screen. Create it once at the start, then all psql commands connect without exposing credentials:
    ```bash
    echo "<PG_HOST>:5432:postgres:snowflake_admin:<PG_PASSWORD>" > ~/.pgpass && chmod 600 ~/.pgpass
    ```
    After this, connect with just: `psql "host=<PG_HOST> port=5432 user=snowflake_admin dbname=postgres sslmode=require"`
    Clean up `~/.pgpass` during teardown.
-5. **Always read your Openflow skills first** before any Openflow operation (checking runtimes, deploying connectors, managing process groups, teardown). The Openflow skills contain the authoritative guidance for interacting with the runtime and NiPyApi.
+7. **Always read your Openflow skills first** before any Openflow operation (checking runtimes, deploying connectors, managing process groups, teardown). The Openflow skills contain the authoritative guidance for interacting with the runtime and NiPyApi.
+8. **Snowsight-friendly Snowflake SQL during CDC checks (Step 6b).** After the Postgres `UPDATE` to **100.00**, **print the Snowsight copy-paste block** (the two `SELECT`s in Step 2) in the chat **before** the wait so the user can run Snowsight in parallel during the pause. When you **verify CDC propagation** in Snowflake (Step 2 after the update, and Step 4 after the revert), **print those same `SELECT`s again in a fenced `sql` block**— easy copy-paste for Snowsight alongside whatever you run from the CLI. Mention that Snowsight is optional but fits live demos (break from the terminal). Use the exact SQL from Step 2 / Step 4, not a paraphrase. **Also print the Postgres `UPDATE` statements** from Step 6b for reference: at minimum, when you start the live CDC test (before or with Step 1), print the **Postgres — copy-paste `UPDATE` reference** block (both `UPDATE`s in one fence); when you run the revert (Step 3), print that revert `UPDATE` again in its own fenced `sql` block so the user can copy into psql without hunting the transcript.
+9. **Manual follow-on playbook (Step 6c).** After Step 6b succeeds and you deliver the CDC verified message, **always print the full Step 6c section** (psql login, Postgres `SELECT`/`UPDATE`s, Snowflake `SELECT`s, pointer to Step 7 teardown) in the same user-facing response so the user can **continue the demo manually** — open psql, paste changes in Postgres, flip to Snowsight and re-run the Snowflake queries — **before** any teardown. Substitute `<PG_HOST>` with the real host; never print the password.
 
 ---
 
@@ -223,29 +226,36 @@ CREATE TABLE IF NOT EXISTS who.life_expectancy (
 
 #### 3b. Load data from CSV
 
-The CSV is at `RELAY_WHS.csv` in the project root. Load via a temp staging table:
+The CSV is `RELAY_WHS.csv` beside this skill (typically `postgres-cdc-demo/RELAY_WHS.csv` when the skill is installed). **Run everything below in one psql process** so the temp table, client `\copy`, and `INSERT` share one session.
 
-```sql
+`\copy` resolves the CSV path relative to the **shell working directory** at `psql` start — `cd` to that directory first. If `cd` is not possible, keep one `psql` session and paste this block, changing the `\copy` line to an absolute path to `RELAY_WHS.csv`.
+
+Single bash invocation (preferred for agents and automation):
+
+```bash
+cd "<path-to-directory-containing-RELAY_WHS.csv>" || exit 1
+psql "host=<PG_HOST> port=5432 user=snowflake_admin dbname=postgres sslmode=require" <<'PSQL_LOAD'
+\set ON_ERROR_STOP on
+
 CREATE TEMP TABLE _raw_import (
     ind_id TEXT, ind_code TEXT, ind_uuid TEXT, ind_per_code TEXT,
     dim_time TEXT, dim_time_type TEXT, dim_geo_code_m49 TEXT,
     dim_geo_code_type TEXT, dim_publish_state TEXT, ind_name TEXT,
     geo_name_short TEXT, dim_sex TEXT, amount_n TEXT
 );
-```
 
-```
 \copy _raw_import FROM 'RELAY_WHS.csv' WITH (FORMAT csv, HEADER true)
-```
 
-```sql
 INSERT INTO who.life_expectancy (year, geo_code, geo_code_type, geo_name, sex, life_expectancy)
 SELECT dim_time::SMALLINT, dim_geo_code_m49::SMALLINT, dim_geo_code_type,
        geo_name_short, dim_sex, amount_n::NUMERIC(16,8)
 FROM _raw_import;
 
 DROP TABLE _raw_import;
+PSQL_LOAD
 ```
+
+The quoted heredoc delimiter (`<<'PSQL_LOAD'`) prevents the shell from expanding SQL; only substitute `<PG_HOST>` and the `cd` path in the outer bash lines.
 
 #### 3c. Create CDC publication
 
@@ -257,10 +267,13 @@ CREATE PUBLICATION openflow FOR TABLE who.life_expectancy;
 
 ```sql
 SELECT COUNT(*) FROM who.life_expectancy;
-SELECT * FROM who.life_expectancy WHERE geo_name = 'Switzerland' ORDER BY year DESC, sex LIMIT 10;
+SELECT * FROM who.life_expectancy
+WHERE geo_name LIKE 'United Kingdom%'
+ORDER BY year DESC, sex
+LIMIT 10;
 ```
 
-Expected: 12,936 rows.
+Expected: 12,936 rows from `COUNT(*)`. The sample `SELECT` uses **United Kingdom** (`LIKE` matches the WHO long place name) so browse queries stay consistent with the **Step 6b** live CDC test on the same geography.
 
 ---
 
@@ -395,16 +408,47 @@ Retry up to 3 times with 15-second waits if 0.
 
 ```sql
 SELECT * FROM PG_CDC_DEMO_DB.WHO.LIFE_EXPECTANCY
-WHERE GEO_NAME = 'Switzerland'
+WHERE GEO_NAME LIKE 'United Kingdom%'
 ORDER BY YEAR DESC, SEX
 LIMIT 10;
 ```
+
+Same **United Kingdom** geography as Step **6b** / **6c** (`LIKE` matches the WHO label in the table).
 
 #### 6b. Test live CDC
 
 We will update a specific record, verify it propagates, revert it, and verify again.
 
-**The test record:** United Kingdom, Female, 2021 — original life expectancy is `81.93070945`.
+**The test record:** UK female life expectancy for **2021**. The table has **`geo_name`** (WHO place label), not a `country` column — in the loaded CSV the UK row uses a long name such as `United Kingdom of Great Britain and Northern Ireland`. Original **`life_expectancy`** is `81.93070945`; the exercise sets it to **`100.00`** then reverts.
+
+**Postgres — copy-paste `UPDATE` reference (print for the user):** Both statements below are what Step 1 and Step 3 run in `postgres` via psql. Echo them in your chat in a fenced `sql` block so the audience can copy into psql or a notes doc in parallel with the demo.
+
+```sql
+-- Step 1: CDC test bump (expect Snowflake to follow)
+UPDATE who.life_expectancy SET life_expectancy = 100.00
+WHERE year = 2021
+  AND sex = 'FEMALE'
+  AND geo_name LIKE 'United Kingdom%';
+
+-- Step 3: revert to WHO value
+UPDATE who.life_expectancy SET life_expectancy = 81.93070945
+WHERE year = 2021
+  AND sex = 'FEMALE'
+  AND geo_name LIKE 'United Kingdom%';
+```
+
+**Step 0 — Find the row in Postgres** (optional but recommended; same psql session as the update):
+
+```sql
+SELECT year, geo_code, geo_name, sex, life_expectancy
+FROM who.life_expectancy
+WHERE year = 2021
+  AND sex = 'FEMALE'
+  AND geo_name LIKE 'United Kingdom%'
+ORDER BY geo_name;
+```
+
+Expect one female row for the UK country series (`geo_code` **826** if you need the numeric key elsewhere).
 
 **Step 1 — Update in Postgres** (via psql, connected to the `postgres` database using `.pgpass`):
 
@@ -414,36 +458,41 @@ psql "host=<PG_HOST> port=5432 user=snowflake_admin dbname=postgres sslmode=requ
 
 ```sql
 UPDATE who.life_expectancy SET life_expectancy = 100.00
-WHERE geo_code = 826 AND year = 2021 AND sex = 'FEMALE';
+WHERE year = 2021
+  AND sex = 'FEMALE'
+  AND geo_name LIKE 'United Kingdom%';
 ```
 
-Tell the user:
+Tell the user, then **in this same turn** (before the wait): **print the Postgres `UPDATE` reference block** (both `UPDATE`s above — bump + revert) for copy-paste into psql, and **print the Snowsight copy-paste `sql` block** (the two `SELECT`s under Step 2 — watch by sex, then pinpoint `SELECT *`) so they can run Snowflake checks in parallel while CDC catches up.
 
-> "I've updated the UK Female 2021 life expectancy to **100.00** in PostgreSQL. Waiting 30 seconds for the change to propagate.
->
-> To watch the change arrive in real time, paste this query into a Snowsight worksheet and run it before and after:
->
-> ```sql
-> SELECT YEAR, GEO_NAME, SEX, LIFE_EXPECTANCY
-> FROM PG_CDC_DEMO_DB.WHO.LIFE_EXPECTANCY
-> WHERE GEO_CODE = 826 AND YEAR = 2021
-> ORDER BY SEX;
-> ```"
+> "I've updated the UK Female 2021 life expectancy to **100.00** in PostgreSQL. I'll wait for CDC, then verify in Snowflake. Copy the Snowflake queries from my message into **Snowsight** if you want to watch the row change there in parallel with the CLI— useful during demos."
 
 Wait 30 seconds.
 
-**Step 2 — Verify in Snowflake:**
+**Step 2 — Verify CDC propagation in Snowflake**
+
+Run the verification query (e.g. `snow sql -q "..."` or your Snowflake path). **In the same response, print the Snowflake SQL below for Snowsight** — users often paste it into a worksheet and refresh while you poll from the CLI, which works well in live demos.
+
+**Copy into Snowsight (parallel check — after update to 100.00):**
 
 ```sql
-SELECT * FROM PG_CDC_DEMO_DB.WHO.LIFE_EXPECTANCY
-WHERE GEO_CODE = 826 AND YEAR = 2021 AND SEX = 'FEMALE';
+-- UK 2021 rows by sex (watch FEMALE move to 100.00)
+SELECT YEAR, GEO_NAME, SEX, LIFE_EXPECTANCY
+FROM PG_CDC_DEMO_DB.WHO.LIFE_EXPECTANCY
+WHERE YEAR = 2021 AND GEO_NAME LIKE 'United Kingdom%'
+ORDER BY SEX;
+
+-- Pinpoint: updated row only
+SELECT *
+FROM PG_CDC_DEMO_DB.WHO.LIFE_EXPECTANCY
+WHERE YEAR = 2021 AND SEX = 'FEMALE' AND GEO_NAME LIKE 'United Kingdom%';
 ```
 
-Confirm the value shows `100.00`. If it still shows the original value, wait another 30 seconds and retry.
+Confirm **`LIFE_EXPECTANCY`** shows **`100.00`** on the female row. If it still shows the original value, wait another 15–30 seconds and retry (CLI and/or Snowsight).
 
 Tell the user:
 
-> "The change has propagated. Now I'll revert the value back to the original. Again, feel free to check the table in Snowsight before and after."
+> "The change has propagated. Now I'll revert the value back to the original. If you have Snowsight open, run the same queries again after the revert."
 
 Wait for user confirmation or pause for 10 seconds.
 
@@ -451,21 +500,95 @@ Wait for user confirmation or pause for 10 seconds.
 
 ```sql
 UPDATE who.life_expectancy SET life_expectancy = 81.93070945
-WHERE geo_code = 826 AND year = 2021 AND sex = 'FEMALE';
+WHERE year = 2021
+  AND sex = 'FEMALE'
+  AND geo_name LIKE 'United Kingdom%';
 ```
+
+**Print this revert `UPDATE` verbatim in a fenced `sql` block** in your user-facing message (same SQL as the second statement in the Postgres reference block above) so the user can copy it into psql without scrolling.
 
 Wait 30 seconds.
 
-**Step 4 — Verify revert in Snowflake:**
+**Step 4 — Verify CDC propagation after revert in Snowflake**
+
+Run the same checks as Step 2. **Again print the Snowflake SQL for Snowsight** (same queries as Step 2 — copy-paste friendly):
 
 ```sql
-SELECT * FROM PG_CDC_DEMO_DB.WHO.LIFE_EXPECTANCY
-WHERE GEO_CODE = 826 AND YEAR = 2021 AND SEX = 'FEMALE';
+SELECT YEAR, GEO_NAME, SEX, LIFE_EXPECTANCY
+FROM PG_CDC_DEMO_DB.WHO.LIFE_EXPECTANCY
+WHERE YEAR = 2021 AND GEO_NAME LIKE 'United Kingdom%'
+ORDER BY SEX;
+
+SELECT *
+FROM PG_CDC_DEMO_DB.WHO.LIFE_EXPECTANCY
+WHERE YEAR = 2021 AND SEX = 'FEMALE' AND GEO_NAME LIKE 'United Kingdom%';
 ```
 
-Confirm the value is back to `81.93070945`.
+Confirm **`LIFE_EXPECTANCY`** is back to **`81.93070945`**.
 
 > "CDC round-trip verified. Changes in Snowflake Postgres propagate to Snowflake native tables in near-real time."
+
+#### 6c. Optional — manual follow-on (before teardown)
+
+Automated verification in **6b** is complete. **Teardown is Step 7** — use it when you are ready to remove resources.
+
+If you want to **keep exploring CDC yourself** (open **psql**, run `UPDATE`s in Postgres, then switch to **Snowsight** and run `SELECT`s to watch rows catch up), the executing agent should **print everything below in full** in the closing message so you can copy-paste without opening the skill file. Keep `<PG_HOST>` as your instance hostname from earlier steps.
+
+**1 — Log in to Postgres (psql)**
+
+With `.pgpass` set up (Step 2d), connect to the `postgres` database:
+
+```bash
+psql "host=<PG_HOST> port=5432 user=snowflake_admin dbname=postgres sslmode=require"
+```
+
+Without `.pgpass`, use your normal secure method (`PGPASSWORD` in the environment for this session only, or an interactive password prompt). Do not paste passwords into chat or shared notes.
+
+**2 — Postgres: find the test row (optional)**
+
+```sql
+SELECT year, geo_code, geo_name, sex, life_expectancy
+FROM who.life_expectancy
+WHERE year = 2021 AND sex = 'FEMALE' AND geo_name LIKE 'United Kingdom%'
+ORDER BY geo_name;
+```
+
+**3 — Postgres: example `UPDATE`s (modify, then verify in Snowflake, then revert)**
+
+Run one `UPDATE` at a time in psql. After each change, wait **30–90 seconds** (typical CDC latency), then run the Snowflake queries in **4** in Snowsight until `LIFE_EXPECTANCY` matches.
+
+```sql
+-- Set a demo value (Snowflake should show 100.00 for this row after CDC)
+UPDATE who.life_expectancy SET life_expectancy = 100.00
+WHERE year = 2021 AND sex = 'FEMALE' AND geo_name LIKE 'United Kingdom%';
+
+-- Restore the original WHO value when you are done experimenting
+UPDATE who.life_expectancy SET life_expectancy = 81.93070945
+WHERE year = 2021 AND sex = 'FEMALE' AND geo_name LIKE 'United Kingdom%';
+```
+
+You may use other values for `life_expectancy` if you want ad hoc tests; keep the same `WHERE` clause so you stay on the same primary-key row.
+
+**4 — Snowflake (Snowsight): `SELECT`s to confirm propagation**
+
+Open a **SQL worksheet** in Snowsight (same account where `PG_CDC_DEMO_DB` lives). Re-run after each Postgres `UPDATE` until results match:
+
+```sql
+-- UK 2021 by sex (watch FEMALE after your UPDATE)
+SELECT YEAR, GEO_NAME, SEX, LIFE_EXPECTANCY
+FROM PG_CDC_DEMO_DB.WHO.LIFE_EXPECTANCY
+WHERE YEAR = 2021 AND GEO_NAME LIKE 'United Kingdom%'
+ORDER BY SEX;
+
+-- Pinpoint row only
+SELECT *
+FROM PG_CDC_DEMO_DB.WHO.LIFE_EXPECTANCY
+WHERE YEAR = 2021 AND SEX = 'FEMALE' AND GEO_NAME LIKE 'United Kingdom%';
+```
+
+**5 — When you are finished**
+
+Tear down with **Step 7**, or prompt: *"clean up postgres cdc demo"*.
 
 ---
 
@@ -564,7 +687,7 @@ Present a summary showing what was removed and what was already gone:
 
 ## Examples
 
-**User**: "postgres cdc demo" → Full flow Steps 0-6.
+**User**: "postgres cdc demo" → Full flow Steps 0-6; after 6b succeeds, print **6c** (manual psql + Snowsight copy-paste) before suggesting Step 7 teardown.
 
 **User**: "I already have a Snowflake Postgres instance, set up CDC to Snowflake" → Step 0 (existing path), collect connection details, skip to Step 3.
 
