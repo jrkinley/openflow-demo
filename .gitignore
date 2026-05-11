@@ -66,6 +66,9 @@ aws_sftp_key*
 # IDE & Editor Files
 # =============================================================================
 
+# Cortex Code
+.snowflake/
+
 # Visual Studio Code
 .vscode/
 
