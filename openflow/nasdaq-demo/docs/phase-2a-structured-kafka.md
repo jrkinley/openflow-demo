@@ -38,7 +38,7 @@ cp .env.example .env
 Edit `.env` with the values from `terraform output`:
 
 ```bash
-cd ../../terraform/msk
+cd ../../../terraform/msk
 terraform output msk_bootstrap_brokers_sasl_scram  # KAFKA_BOOTSTRAP_SERVERS
 terraform output kafka_username                    # KAFKA_SASL_USERNAME
 terraform output -raw kafka_password               # KAFKA_SASL_PASSWORD
@@ -59,7 +59,7 @@ terraform output -raw kafka_password               # KAFKA_SASL_PASSWORD
 > broker endpoints and credentials.
 > ```
 
-For full details on rpk installation and MSK profile configuration, see [terraform/msk/README.md](../../terraform/msk/README.md).
+For full details on rpk installation and MSK profile configuration, see [terraform/msk/README.md](../../../terraform/msk/README.md).
 
 Verify rpk can connect to the cluster:
 

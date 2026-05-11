@@ -11,7 +11,7 @@
 set -e
 
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
-TERRAFORM_DIR="$SCRIPT_DIR/../../terraform/sftp"
+TERRAFORM_DIR="$SCRIPT_DIR/../../../terraform/sftp"
 SOURCE_DIR="${1:-$SCRIPT_DIR/../data/reports}"
 
 if [ ! -d "$SOURCE_DIR" ]; then

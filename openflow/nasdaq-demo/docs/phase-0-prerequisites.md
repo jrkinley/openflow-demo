@@ -46,8 +46,8 @@ ALTER ACCOUNT SET CORTEX_ENABLED_CROSS_REGION = 'AWS_EU';
 ## Clone the Repository
 
 ```bash
-git clone https://github.com/jrkinley/openflow-demo.git
-cd openflow-demo/nasdaq-demo
+git clone https://github.com/jrkinley/snowflake-demos.git
+cd snowflake-demos/openflow/nasdaq-demo
 ```
 
 ## Snowflake Database Setup

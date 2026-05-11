@@ -36,7 +36,7 @@ To upload reports for a single company:
 **Checkpoint** -- verify the files are on the SFTP server:
 
 ```bash
-cd ../terraform/sftp
+cd ../../../terraform/sftp
 echo "ls -la" | sftp -i aws_sftp_key openflow-user@$(terraform output -raw server_endpoint)
 ```
 

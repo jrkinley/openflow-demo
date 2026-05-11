@@ -14,7 +14,7 @@ if ! command -v psql &> /dev/null; then
 fi
 
 # Get RDS connection details from Terraform output
-TERRAFORM_DIR="$(cd "$(dirname "$0")/../../terraform/rds-postgres" && pwd)"
+TERRAFORM_DIR="$(cd "$(dirname "$0")/../../../terraform/rds-postgres" && pwd)"
 echo "📡 Getting RDS connection details from Terraform..."
 RDS_HOST=$(cd "$TERRAFORM_DIR" && terraform output -raw rds_hostname 2>/dev/null)
 RDS_USERNAME=$(cd "$TERRAFORM_DIR" && terraform output -raw rds_username 2>/dev/null)
