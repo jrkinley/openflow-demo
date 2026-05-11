@@ -8,12 +8,21 @@ import os
 import sys
 from datetime import datetime, timezone
 import requests
+from requests.adapters import HTTPAdapter
+from urllib3.util.retry import Retry
 import pandas as pd
 from snowflake.snowpark import Session
 
 BASE_URL = "https://www.imf.org/external/datamapper/api/v1"
 DATASET = "WEO"
 TIMEOUT_SECONDS = 120
+
+
+def create_http_session():
+    session = requests.Session()
+    retries = Retry(total=3, backoff_factor=1, status_forcelist=[429, 500, 502, 503, 504])
+    session.mount("https://", HTTPAdapter(max_retries=retries))
+    return session
 
 SNOWFLAKE_ACCOUNT = os.getenv("SNOWFLAKE_ACCOUNT")
 SNOWFLAKE_HOST = os.getenv("SNOWFLAKE_HOST")
@@ -40,8 +49,8 @@ def get_snowpark_session():
     }).create()
 
 
-def fetch_weo_indicators():
-    response = requests.get(f"{BASE_URL}/indicators", timeout=TIMEOUT_SECONDS)
+def fetch_weo_indicators(http_session):
+    response = http_session.get(f"{BASE_URL}/indicators", timeout=TIMEOUT_SECONDS)
     response.raise_for_status()
     indicators = response.json().get("indicators", {})
     return {
@@ -50,8 +59,8 @@ def fetch_weo_indicators():
     }
 
 
-def fetch_indicator_data(indicator_code):
-    response = requests.get(f"{BASE_URL}/{indicator_code}", timeout=TIMEOUT_SECONDS)
+def fetch_indicator_data(http_session, indicator_code):
+    response = http_session.get(f"{BASE_URL}/{indicator_code}", timeout=TIMEOUT_SECONDS)
     response.raise_for_status()
     return response.json()
 
@@ -75,12 +84,13 @@ def main():
     
     try:
         session = get_snowpark_session()
+        http_session = create_http_session()
         
-        weo_indicators = fetch_weo_indicators()
+        weo_indicators = fetch_weo_indicators(http_session)
         
         all_data = []
         for indicator_code in weo_indicators:
-            data = fetch_indicator_data(indicator_code)
+            data = fetch_indicator_data(http_session, indicator_code)
             df = parse_indicator_data(indicator_code, data)
             all_data.append(df)
         
@@ -93,13 +103,14 @@ def main():
             database=SNOWFLAKE_DATABASE,
             schema=SNOWFLAKE_SCHEMA,
             auto_create_table=True,
-            overwrite=True
+            overwrite=True,
+            use_logical_type=True
         )
         
         print(f"Loaded {len(combined_df)} rows into {SNOWFLAKE_DATABASE}.{SNOWFLAKE_SCHEMA}.{TABLE_NAME}")
         session.close()
         
-    except requests.exceptions.RequestException as e:
+    except Exception as e:
         print(f"Error: {e}", file=sys.stderr)
         sys.exit(1)
 

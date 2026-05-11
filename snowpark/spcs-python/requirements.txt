@@ -1,3 +1,4 @@
-requests>=2.28.0
-pandas>=2.0.0
-snowflake-snowpark-python[pandas]>=1.11.0
+requests>=2.31,<3
+pandas>=2.0,<3
+snowflake-snowpark-python[pandas]>=1.17,<2
+urllib3>=2.0,<3

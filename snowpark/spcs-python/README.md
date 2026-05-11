@@ -106,7 +106,7 @@ Create the stored procedure that imports the Python file from the stage:
 CREATE OR REPLACE PROCEDURE API_DEMO.PUBLIC.IMF_DATAMAPPER_REFRESH()
 RETURNS STRING
 LANGUAGE PYTHON
-RUNTIME_VERSION = '3.11'
+RUNTIME_VERSION = '3.12'
 PACKAGES = ('snowflake-snowpark-python', 'requests', 'pandas')
 IMPORTS = ('@API_DEMO.PUBLIC.PYTHON_CODE/imf_datamapper_api_proc.py')
 HANDLER = 'imf_datamapper_api_proc.main'
@@ -118,7 +118,7 @@ EXECUTE AS CALLER;
 
 | Setting | Value | Purpose |
 |---------|-------|---------|
-| `RUNTIME_VERSION` | 3.11 | Python version |
+| `RUNTIME_VERSION` | 3.12 | Python version |
 | `PACKAGES` | snowflake-snowpark-python, requests, pandas | Required dependencies |
 | `IMPORTS` | @API_DEMO.PUBLIC.PYTHON_CODE/imf_datamapper_api_proc.py | References Python file on stage |
 | `HANDLER` | imf_datamapper_api_proc.main | Module.function format for imported files |
@@ -139,7 +139,7 @@ Then recreate the procedure (the CREATE OR REPLACE statement remains the same):
 CREATE OR REPLACE PROCEDURE API_DEMO.PUBLIC.IMF_DATAMAPPER_REFRESH()
 RETURNS STRING
 LANGUAGE PYTHON
-RUNTIME_VERSION = '3.11'
+RUNTIME_VERSION = '3.12'
 PACKAGES = ('snowflake-snowpark-python', 'requests', 'pandas')
 IMPORTS = ('@API_DEMO.PUBLIC.PYTHON_CODE/imf_datamapper_api_proc.py')
 HANDLER = 'imf_datamapper_api_proc.main'
@@ -317,6 +317,52 @@ DROP SERVICE imf_datamapper_service;
 ```sql
 DROP COMPUTE POOL IF EXISTS imf_compute_pool;
 DROP IMAGE REPOSITORY IF EXISTS imf_images;
+```
+
+## Example Queries
+
+```sql
+-- Top 10 countries by GDP per capita (latest year)
+SELECT COUNTRY_CODE,
+       YEAR,
+       ROUND(VALUE, 2) AS GDP_PER_CAPITA_USD
+  FROM IMF_DATAMAPPER_INDICATORS
+ WHERE INDICATOR = 'NGDPDPC'
+   AND YEAR = (SELECT MAX(YEAR)
+                 FROM IMF_DATAMAPPER_INDICATORS
+                WHERE INDICATOR = 'NGDPDPC'
+                  AND VALUE IS NOT NULL)
+   AND VALUE IS NOT NULL
+ ORDER BY VALUE DESC
+ LIMIT 10;
+
+-- Top 10 countries by highest inflation (latest year)
+SELECT COUNTRY_CODE,
+       YEAR,
+       ROUND(VALUE, 2) AS INFLATION_PCT
+  FROM IMF_DATAMAPPER_INDICATORS
+ WHERE INDICATOR = 'PCPIPCH'
+   AND YEAR = (SELECT MAX(YEAR)
+                 FROM IMF_DATAMAPPER_INDICATORS
+                WHERE INDICATOR = 'PCPIPCH'
+                  AND VALUE IS NOT NULL)
+   AND VALUE IS NOT NULL
+ ORDER BY VALUE DESC
+ LIMIT 10;
+
+-- Side-by-side comparison: USA vs China vs India (latest year, all indicators)
+SELECT INDICATOR,
+       MAX(CASE WHEN COUNTRY_CODE = 'USA' THEN ROUND(VALUE, 2) END) AS USA,
+       MAX(CASE WHEN COUNTRY_CODE = 'CHN' THEN ROUND(VALUE, 2) END) AS CHINA,
+       MAX(CASE WHEN COUNTRY_CODE = 'IND' THEN ROUND(VALUE, 2) END) AS INDIA
+  FROM IMF_DATAMAPPER_INDICATORS
+ WHERE YEAR = (SELECT MAX(YEAR)
+                 FROM IMF_DATAMAPPER_INDICATORS
+                WHERE INDICATOR = 'NGDPD'
+                  AND VALUE IS NOT NULL)
+   AND COUNTRY_CODE IN ('USA', 'CHN', 'IND')
+ GROUP BY INDICATOR
+ ORDER BY INDICATOR;
 ```
 
 ## Data Source
