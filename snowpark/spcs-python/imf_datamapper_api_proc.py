@@ -6,6 +6,8 @@ Fetches World Economic Outlook data from IMF and loads into Snowflake.
 
 from datetime import datetime, timezone
 import requests
+from requests.adapters import HTTPAdapter
+from urllib3.util.retry import Retry
 import pandas as pd
 from snowflake.snowpark import Session
 
@@ -14,11 +16,18 @@ DATASET = "WEO"
 DATABASE = "API_DEMO"
 SCHEMA = "PUBLIC"
 TABLE_NAME = "IMF_DATAMAPPER_INDICATORS"
-TIMEOUT_SECONDS = 30
+TIMEOUT_SECONDS = 60
 
 
-def fetch_weo_indicators():
-    response = requests.get(f"{BASE_URL}/indicators", timeout=TIMEOUT_SECONDS)
+def create_http_session():
+    session = requests.Session()
+    retries = Retry(total=3, backoff_factor=1, status_forcelist=[429, 500, 502, 503, 504])
+    session.mount("https://", HTTPAdapter(max_retries=retries))
+    return session
+
+
+def fetch_weo_indicators(http_session):
+    response = http_session.get(f"{BASE_URL}/indicators", timeout=TIMEOUT_SECONDS)
     response.raise_for_status()
     indicators = response.json().get("indicators", {})
     return {
@@ -27,8 +36,8 @@ def fetch_weo_indicators():
     }
 
 
-def fetch_indicator_data(indicator_code):
-    response = requests.get(f"{BASE_URL}/{indicator_code}", timeout=TIMEOUT_SECONDS)
+def fetch_indicator_data(http_session, indicator_code):
+    response = http_session.get(f"{BASE_URL}/{indicator_code}", timeout=TIMEOUT_SECONDS)
     response.raise_for_status()
     return response.json()
 
@@ -64,11 +73,12 @@ def main(session: Session) -> str:
     session.sql(f"USE DATABASE {DATABASE}").collect()
     session.sql(f"USE SCHEMA {SCHEMA}").collect()
     
-    weo_indicators = fetch_weo_indicators()
+    http_session = create_http_session()
+    weo_indicators = fetch_weo_indicators(http_session)
     
     all_data = []
     for indicator_code in weo_indicators:
-        data = fetch_indicator_data(indicator_code)
+        data = fetch_indicator_data(http_session, indicator_code)
         df = parse_indicator_data(indicator_code, data)
         all_data.append(df)
     
@@ -81,7 +91,8 @@ def main(session: Session) -> str:
         database=DATABASE,
         schema=SCHEMA,
         auto_create_table=True,
-        overwrite=True
+        overwrite=True,
+        use_logical_type=True
     )
     
     return f"Loaded {len(combined_df)} rows into {DATABASE}.{SCHEMA}.{TABLE_NAME}"
