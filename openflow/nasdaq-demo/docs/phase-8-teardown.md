@@ -29,7 +29,7 @@ Destroy in any order -- the Terraform modules are independent.
 > then run terraform destroy.
 > ```
 
-See the [SFTP Terraform README](../../terraform/sftp/README.md) for detailed teardown instructions.
+See the [SFTP Terraform README](../../../terraform/sftp/README.md) for detailed teardown instructions.
 
 **MSK Cluster (if deployed):**
 
@@ -40,7 +40,7 @@ See the [SFTP Terraform README](../../terraform/sftp/README.md) for detailed tea
 > Terraform resources.
 > ```
 
-See the [MSK Terraform README](../../terraform/msk/README.md) for manual teardown steps.
+See the [MSK Terraform README](../../../terraform/msk/README.md) for manual teardown steps.
 
 **RDS PostgreSQL (if deployed):**
 
@@ -51,7 +51,7 @@ See the [MSK Terraform README](../../terraform/msk/README.md) for manual teardow
 > RDS PostgreSQL Terraform resources.
 > ```
 
-See the [RDS PostgreSQL Terraform README](../../terraform/rds-postgres/README.md) for manual teardown steps.
+See the [RDS PostgreSQL Terraform README](../../../terraform/rds-postgres/README.md) for manual teardown steps.
 
 ## 8.3 Local Cleanup (optional)
 

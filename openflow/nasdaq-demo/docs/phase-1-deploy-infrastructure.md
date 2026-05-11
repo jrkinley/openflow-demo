@@ -42,7 +42,7 @@ The SFTP server hosts the earnings report PDFs that Openflow will pick up and de
 > connecting and listing the root directory.
 > ```
 
-For manual steps, see [terraform/sftp/README.md](../../terraform/sftp/README.md).
+For manual steps, see [terraform/sftp/README.md](../../../terraform/sftp/README.md).
 
 ## 1.2 Deploy Structured Data Source (choose one)
 
@@ -69,7 +69,7 @@ Deploys an AWS Managed Streaming for Apache Kafka cluster with SASL/SCRAM authen
 > is happening while waiting.
 > ```
 
-For full details, see [terraform/msk/README.md](../../terraform/msk/README.md).
+For full details, see [terraform/msk/README.md](../../../terraform/msk/README.md).
 
 ### Option B: PostgreSQL (CDC)
 
@@ -85,4 +85,4 @@ Deploys an RDS PostgreSQL instance configured for Change Data Capture with logic
 > by connecting with psql.
 > ```
 
-For full details, see [terraform/rds-postgres/README.md](../../terraform/rds-postgres/README.md).
+For full details, see [terraform/rds-postgres/README.md](../../../terraform/rds-postgres/README.md).
