@@ -4,3 +4,7 @@ __pycache__
 *.pyc
 *.pyo
 .DS_Store
+*.md
+profile.json
+*.p8
+*.pub
