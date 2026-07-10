@@ -50,6 +50,13 @@ Track these throughout the skill. Defaults shown in parentheses.
    After this, connect with just: `psql "host=<PG_HOST> port=5432 user=snowflake_admin dbname=postgres sslmode=require"`
    Clean up `~/.pgpass` during teardown.
 5. **Always read your Openflow skills first** before any Openflow operation (checking runtimes, deploying connectors, managing process groups, teardown). The Openflow skills contain the authoritative guidance for interacting with the runtime and NiPyApi.
+7. **Hostname rendering workaround** — Snowflake Postgres hostnames end in `.app`, which the markdown chat renderer converts into clickable links. When the user copies rendered text, the hostname gets mangled. To avoid this:
+   - Provide a `snow sql` command that programmatically extracts and sets PG_HOST (note: the user must pass their connection name, e.g. `-c JKINLEY_AWS`, not bare `snow sql`):
+     ```bash
+     PG_HOST=$(snow sql -c <connection> -q "DESCRIBE POSTGRES INSTANCE PG_CDC_DEMO;" --format json | python3 -c "import sys,json; [print(r['value']) for r in json.load(sys.stdin) if r['property']=='host']")
+     ```
+   - When outputting the hostname directly, place it alone on its own line inside a fenced code block to minimize rendering interference.
+   - Combine the PG_HOST assignment and .pgpass setup into a single code block so the user can copy it all at once.
 
 ---
 
@@ -377,6 +384,28 @@ When enabling controller services, the **Private Key Service** controller will l
 
 If redeploying after a failed attempt: delete the process group, list and delete any orphan parameter contexts, then redeploy fresh.
 
+**Processor tuning — speed up the demo (recommended):**
+Inside the connector there is a `MergeContent` processor named **"Merge Rows Into Bigger FlowFiles"** in the **Incremental Load** process group. Its **Max Bin Age** property defaults to `1 min`. Because this demo makes one small change at a time, that default forces a pointless ~1 minute delay before each change is merged into the destination table. Set **Max Bin Age** to `10 sec` to make CDC changes propagate much faster during the demo.
+
+- Find the processor and set the property before starting the flow (or update it live — `update_processor` with `auto_stop=True` stops/restarts just that processor):
+  ```bash
+  # Find the "Merge Rows Into Bigger FlowFiles" MergeContent processor and its current Max Bin Age
+  nipyapi --profile <profile> canvas list_all_processors --pg_id "<pg-id>" | \
+    jq '.[] | select(.component.name == "Merge Rows Into Bigger FlowFiles") | {id: .id, max_bin_age: .component.config.properties["Max Bin Age"]}'
+  ```
+- Set the **Max Bin Age** property to `10 sec`. The property key is the display name `Max Bin Age` (NOT `max-bin-age`). Use nipyapi Python (see `references/ops-component-config.md`):
+  ```bash
+  # nipyapi installed as a uv tool: use /Users/<you>/.local/share/uv/tools/nipyapi/bin/python3
+  <nipyapi-python> -c "
+  import nipyapi
+  nipyapi.profiles.switch('<profile>')
+  proc = nipyapi.canvas.get_processor('<processor-id>', identifier_type='id')
+  config = nipyapi.canvas.prepare_processor_config(proc, {'Max Bin Age': '10 sec'})
+  nipyapi.canvas.update_processor(proc, update=config, auto_stop=True)
+  "
+  ```
+- With this change, the CDC merge latency in the story walkthrough (Step 6) drops from ~60-90s to ~10-20s.
+
 Start the connector once deployed.
 
 ---
@@ -400,74 +429,101 @@ ORDER BY YEAR DESC, SEX
 LIMIT 10;
 ```
 
-#### 6b. Test live CDC
+#### 6b. Test live CDC: interactive story walkthrough
 
-We will update a specific record, verify it propagates, revert it, and verify again.
+Walk the user through the CDC "story" one query at a time. **After EVERY step, without exception, use the ask_user_question tool to pause and ask the user when they are ready to move on. Do not reveal or run the next step until they confirm.** This applies to every step including the ones where you run a Snowflake query yourself. **Always print the full Snowflake SQL in a code block** so the user can copy and paste it into a Snowsight worksheet and run it live as you step through. Present Postgres queries for the user to run in psql. Do NOT dump all queries at once; reveal them one step at a time so the story unfolds. Do not use em dashes in the narration.
 
-**The test record:** United Kingdom, Female, 2021 — original life expectancy is `81.93070945`.
+**The test record:** United Kingdom, Female, 2021, original life expectancy is `81.93070945`. Use `GEO_NAME = 'United Kingdom of Great Britain and Northern Ireland'` (not GEO_CODE) in all queries.
 
-**Step 1 — Update in Postgres** (via psql, connected to the `postgres` database using `.pgpass`):
+**The story concept:** A source change in Postgres is captured as a row-level event in the connector's journal table (with `EVENT_TYPE` and `SEEN_AT`), then merged into the destination table. The journal is the persistent change history.
 
-```bash
-psql "host=<PG_HOST> port=5432 user=snowflake_admin dbname=postgres sslmode=require"
-```
+Narrate each step, then ask the user to run the query and confirm before revealing the next.
 
-```sql
-UPDATE who.life_expectancy SET life_expectancy = 100.00
-WHERE geo_code = 826 AND year = 2021 AND sex = 'FEMALE';
-```
-
-Tell the user:
-
-> "I've updated the UK Female 2021 life expectancy to **100.00** in PostgreSQL. Waiting 30 seconds for the change to propagate.
->
-> To watch the change arrive in real time, paste this query into a Snowsight worksheet and run it before and after:
->
-> ```sql
-> SELECT YEAR, GEO_NAME, SEX, LIFE_EXPECTANCY
-> FROM PG_CDC_DEMO_DB.WHO.LIFE_EXPECTANCY
-> WHERE GEO_CODE = 826 AND YEAR = 2021
-> ORDER BY SEX;
-> ```"
-
-Wait 30 seconds.
-
-**Step 2 — Verify in Snowflake:**
+**Step 1: Find the journal table.** The journal name has a dynamic numeric suffix that changes on every redeploy, so discover it first (Snowflake):
 
 ```sql
-SELECT * FROM PG_CDC_DEMO_DB.WHO.LIFE_EXPECTANCY
-WHERE GEO_CODE = 826 AND YEAR = 2021 AND SEX = 'FEMALE';
+SELECT TABLE_NAME
+FROM PG_CDC_DEMO_DB.INFORMATION_SCHEMA.TABLES
+WHERE TABLE_SCHEMA = 'WHO' AND TABLE_NAME ILIKE 'LIFE_EXPECTANCY_JOURNAL%';
 ```
 
-Confirm the value shows `100.00`. If it still shows the original value, wait another 30 seconds and retry.
+Store the returned name as `JOURNAL_TABLE`. Substitute it into the journal queries below (it must be double-quoted because of the mixed case / suffix). Then ask the user to continue.
 
-Tell the user:
+**Step 2: The baseline.** Show what Snowflake currently holds (Snowflake):
 
-> "The change has propagated. Now I'll revert the value back to the original. Again, feel free to check the table in Snowsight before and after."
+```sql
+SELECT YEAR, GEO_NAME, SEX, LIFE_EXPECTANCY, _SNOWFLAKE_UPDATED_AT AS LAST_CHANGED
+FROM PG_CDC_DEMO_DB.WHO.LIFE_EXPECTANCY
+WHERE GEO_NAME = 'United Kingdom of Great Britain and Northern Ireland' AND YEAR = 2021
+ORDER BY SEX;
+```
 
-Wait for user confirmation or pause for 10 seconds.
+Ask the user to run it and confirm the baseline value (`81.93070945` for FEMALE).
 
-**Step 3 — Revert in Postgres** (same psql session, `postgres` database):
+**Step 3: Make a change at source** (Postgres, via psql):
+
+```sql
+UPDATE who.life_expectancy SET life_expectancy = 90.00
+WHERE geo_name = 'United Kingdom of Great Britain and Northern Ireland' AND year = 2021 AND sex = 'FEMALE';
+```
+
+Tell the user the change is made and to wait for the merge cycle (~10-20s if Max Bin Age was lowered to 10 sec per Step 5, otherwise ~60-90s). Ask them to confirm before continuing.
+
+**Step 4: Watch the raw CDC event land in the journal** (Snowflake, substitute `JOURNAL_TABLE`):
+
+```sql
+SELECT PAYLOAD__GEO_NAME AS GEO_NAME,
+       PRIMARY_KEY__YEAR AS YEAR,
+       PRIMARY_KEY__SEX AS SEX,
+       PAYLOAD__LIFE_EXPECTANCY AS NEW_VALUE,
+       EVENT_TYPE,
+       SEEN_AT
+FROM PG_CDC_DEMO_DB.WHO."<JOURNAL_TABLE>"
+WHERE PAYLOAD__GEO_NAME = 'United Kingdom of Great Britain and Northern Ireland'
+ORDER BY SEEN_AT DESC;
+```
+
+Point out the `EVENT_TYPE` (e.g. `IncrementalUpdateRows`) and `SEEN_AT`. This is the connector capturing the change. Ask the user to run it and confirm the event appears.
+
+**Step 5: Confirm the merge into the destination** (Snowflake):
+
+```sql
+SELECT YEAR, GEO_NAME, SEX, LIFE_EXPECTANCY, _SNOWFLAKE_UPDATED_AT AS LAST_CHANGED
+FROM PG_CDC_DEMO_DB.WHO.LIFE_EXPECTANCY
+WHERE GEO_NAME = 'United Kingdom of Great Britain and Northern Ireland' AND YEAR = 2021 AND SEX = 'FEMALE';
+```
+
+Confirm the destination now shows `90.00` and `_SNOWFLAKE_UPDATED_AT` is newer than the baseline. Ask the user to continue.
+
+**Step 6: The full change story.** Show the complete journal history, every row-level event the connector has seen (Snowflake):
+
+```sql
+SELECT SEEN_AT,
+       EVENT_TYPE,
+       PAYLOAD__GEO_NAME AS GEO_NAME,
+       PRIMARY_KEY__YEAR AS YEAR,
+       PRIMARY_KEY__SEX AS SEX,
+       PAYLOAD__LIFE_EXPECTANCY AS VALUE
+FROM PG_CDC_DEMO_DB.WHO."<JOURNAL_TABLE>"
+ORDER BY SEEN_AT;
+```
+
+This is the running history of every change captured since deployment.
+
+**Step 7: Revert** (Postgres, via psql) so the demo is repeatable:
 
 ```sql
 UPDATE who.life_expectancy SET life_expectancy = 81.93070945
-WHERE geo_code = 826 AND year = 2021 AND sex = 'FEMALE';
+WHERE geo_name = 'United Kingdom of Great Britain and Northern Ireland' AND year = 2021 AND sex = 'FEMALE';
 ```
 
-Wait 30 seconds.
+Wait for the merge cycle (~10-20s if Max Bin Age was lowered to 10 sec, otherwise ~60-90s), then optionally re-run Step 4 and Step 5 to show the revert flowing through as another journal event.
 
-**Step 4 — Verify revert in Snowflake:**
-
-```sql
-SELECT * FROM PG_CDC_DEMO_DB.WHO.LIFE_EXPECTANCY
-WHERE GEO_CODE = 826 AND YEAR = 2021 AND SEX = 'FEMALE';
-```
-
-Confirm the value is back to `81.93070945`.
-
-> "CDC round-trip verified. Changes in Snowflake Postgres propagate to Snowflake native tables in near-real time."
+> "CDC round-trip verified. A source change is captured in the journal (with event type and timestamp) and merged into the destination table. The journal gives you the full change history."
 
 ---
+
+
 
 ### Step 7 -- Teardown
 
